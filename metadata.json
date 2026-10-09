@@ -1,0 +1,6 @@
+{
+  "name": "OptiRoute — Smart Ophthalmic Triage",
+  "description": "WhatsApp-first, voice-first ophthalmic triage assistant and hospital clinical dashboard prototype for eye symptom urgency assessment and facility routing.",
+  "requestFramePermissions": ["geolocation"],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
