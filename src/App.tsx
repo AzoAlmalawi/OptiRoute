@@ -34,6 +34,7 @@ export default function App() {
   // Collapsible panels state for demo cases and decision inspection drawer
   const [scenariosOpen, setScenariosOpen] = useState(false);
   const [decisionDrawerOpen, setDecisionDrawerOpen] = useState(false);
+  const [inspectedDashboardSessionId, setInspectedDashboardSessionId] = useState<string | null>(null);
 
   // Sync HTML dir and lang attributes
   useEffect(() => {
@@ -449,6 +450,10 @@ export default function App() {
                     isLoading={isProcessing}
                     queuedScenarioTitle={activeCaseTitle}
                     onCorrectField={handleCorrectField}
+                    onViewCaseInDashboard={(sessionId) => {
+                      setInspectedDashboardSessionId(sessionId);
+                      setCurrentTab('dashboard');
+                    }}
                   />
                 )}
               </div>
@@ -471,6 +476,8 @@ export default function App() {
             onResetToSeed={handleResetToSeed}
             onSubmitReview={handleSubmitReview}
             onSwitchToSimulator={() => setCurrentTab('simulator')}
+            initialInspectedSessionId={inspectedDashboardSessionId}
+            onClearInitialInspectedSession={() => setInspectedDashboardSessionId(null)}
           />
         )}
 

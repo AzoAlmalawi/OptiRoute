@@ -53,6 +53,7 @@ interface WhatsAppSimulatorProps {
     labelAr: string,
     labelEn: string
   ) => void;
+  onViewCaseInDashboard?: (sessionId: string) => void;
 }
 
 export const WhatsAppSimulator: React.FC<WhatsAppSimulatorProps> = ({
@@ -66,6 +67,7 @@ export const WhatsAppSimulator: React.FC<WhatsAppSimulatorProps> = ({
   isLoading = false,
   queuedScenarioTitle,
   onCorrectField,
+  onViewCaseInDashboard,
 }) => {
   const [inputText, setInputText] = useState('');
   const [isRecordingSim, setIsRecordingSim] = useState(false);
@@ -1157,6 +1159,29 @@ export const WhatsAppSimulator: React.FC<WhatsAppSimulatorProps> = ({
                       </div>
                     )}
                   </div>
+
+                  {/* Hospital Dashboard Link Button for Hackathon Demo */}
+                  {onViewCaseInDashboard && (
+                    <div className="pt-2 border-t border-black/10 space-y-1.5">
+                      <button
+                        type="button"
+                        onClick={() => onViewCaseInDashboard(session.id)}
+                        className="w-full inline-flex items-center justify-center gap-2 py-2 px-3 bg-teal-800 hover:bg-teal-900 active:bg-teal-950 text-white rounded-xl text-xs font-bold transition-colors shadow-2xs cursor-pointer"
+                      >
+                        <ExternalLink className="w-3.5 h-3.5 shrink-0" />
+                        <span>
+                          {language === 'ar'
+                            ? 'عرض هذه الحالة في لوحة المستشفى'
+                            : 'View this case in the hospital dashboard'}
+                        </span>
+                      </button>
+                      <p className="text-[10px] text-slate-500 leading-tight text-center px-1">
+                        {language === 'ar'
+                          ? 'يفتح هذا الإجراء الحالة الافتراضية في لوحة تحكم هذا المتصفح فقط. لا يتم إرسال أي إحالة لمستشفى حقيقي.'
+                          : 'This opens the simulated case in this browser’s dashboard. No referral is sent to a real hospital.'}
+                      </p>
+                    </div>
+                  )}
 
                   <div className="text-[10px] text-slate-400 text-right rtl:text-left flex items-center justify-end gap-1">
                     <span>

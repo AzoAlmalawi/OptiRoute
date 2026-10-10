@@ -32,6 +32,7 @@ interface SessionDetailModalProps {
       isFlagged: boolean;
     }
   ) => void;
+  onReturnToSimulator?: () => void;
 }
 
 export const SessionDetailModal: React.FC<SessionDetailModalProps> = ({
@@ -39,6 +40,7 @@ export const SessionDetailModal: React.FC<SessionDetailModalProps> = ({
   language,
   onClose,
   onSubmitReview,
+  onReturnToSimulator,
 }) => {
   const [activeTab, setActiveTab] = useState<'overview' | 'chat' | 'timeline' | 'review'>('overview');
   const [reviewerName, setReviewerName] = useState('د. عبد الإله العتيبي (استشاري طب وجراحة العيون)');
@@ -132,13 +134,28 @@ export const SessionDetailModal: React.FC<SessionDetailModalProps> = ({
             </p>
           </div>
 
-          <button
-            onClick={onClose}
-            className="p-1.5 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-200/60 transition-colors"
-            aria-label="Close"
-          >
-            <X className="w-5 h-5" />
-          </button>
+          <div className="flex items-center gap-2">
+            {onReturnToSimulator && (
+              <button
+                type="button"
+                onClick={onReturnToSimulator}
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-teal-50 hover:bg-teal-100 text-teal-800 border border-teal-200 text-xs font-semibold transition-colors cursor-pointer"
+              >
+                <MessageSquare className="w-3.5 h-3.5" />
+                <span>
+                  {language === 'ar' ? 'العودة للمحادثة' : 'Return to Chat'}
+                </span>
+              </button>
+            )}
+
+            <button
+              onClick={onClose}
+              className="p-1.5 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-200/60 transition-colors cursor-pointer"
+              aria-label="Close"
+            >
+              <X className="w-5 h-5" />
+            </button>
+          </div>
         </div>
 
         {/* Modal Navigation Tabs */}
@@ -338,6 +355,39 @@ export const SessionDetailModal: React.FC<SessionDetailModalProps> = ({
                     {renderTriStateBadge(s.nausea_vomiting, 'غثيان أو قيء', 'Nausea / Vomiting')}
                     {renderTriStateBadge(s.recent_eye_surgery, 'جراحة عيون حديثة', 'Recent Surgery')}
                   </div>
+
+                  {/* Correction History if any adjustments were made */}
+                  {(() => {
+                    const correctionEvents = (session.events || []).filter((e) => e.type === 'SYMPTOM_CORRECTION');
+                    if (correctionEvents.length === 0) return null;
+                    return (
+                      <div className="pt-2.5 border-t border-slate-200 space-y-1.5">
+                        <div className="flex items-center gap-1.5 text-[11px] font-bold text-teal-900">
+                          <History className="w-3.5 h-3.5 text-teal-700" />
+                          <span>
+                            {language === 'ar'
+                              ? `سجل تصحيحات الإجابات (${correctionEvents.length}):`
+                              : `Answer Correction History (${correctionEvents.length}):`}
+                          </span>
+                        </div>
+                        <div className="space-y-1">
+                          {correctionEvents.map((evt) => (
+                            <div
+                              key={evt.id}
+                              className="bg-white p-2 rounded-lg border border-teal-200 text-[11px] flex items-center justify-between gap-2"
+                            >
+                              <span className="font-semibold text-slate-800">
+                                {language === 'ar' ? evt.summaryAr : evt.summaryEn}
+                              </span>
+                              <span className="text-[10px] text-slate-400 font-mono shrink-0">
+                                {new Date(evt.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                              </span>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    );
+                  })()}
                 </div>
               </div>
 

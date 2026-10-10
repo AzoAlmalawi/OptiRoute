@@ -35,6 +35,8 @@ interface DashboardViewProps {
     }
   ) => void;
   onSwitchToSimulator: () => void;
+  initialInspectedSessionId?: string | null;
+  onClearInitialInspectedSession?: () => void;
 }
 
 export const DashboardView: React.FC<DashboardViewProps> = ({
@@ -44,6 +46,8 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
   onResetToSeed,
   onSubmitReview,
   onSwitchToSimulator,
+  initialInspectedSessionId,
+  onClearInitialInspectedSession,
 }) => {
   const t = TRANSLATIONS[language];
   const [searchQuery, setSearchQuery] = useState('');
@@ -53,6 +57,21 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
   const [customDate, setCustomDate] = useState<string>('');
   const [inspectedSession, setInspectedSession] = useState<TriageSession | null>(null);
   const [showResetConfirmModal, setShowResetConfirmModal] = useState<boolean>(false);
+  const [sessionNotFoundError, setSessionNotFoundError] = useState<string | null>(null);
+
+  // Exact session lookup when navigated from chat
+  React.useEffect(() => {
+    if (initialInspectedSessionId) {
+      const match = sessions.find((s) => s.id === initialInspectedSessionId);
+      if (match) {
+        setInspectedSession(match);
+        setSessionNotFoundError(null);
+      } else {
+        setSessionNotFoundError(initialInspectedSessionId);
+      }
+      onClearInitialInspectedSession?.();
+    }
+  }, [initialInspectedSessionId, sessions, onClearInitialInspectedSession]);
 
   // Compute summary metrics strictly from stored sessions (No fabricated statistics)
   const metrics = useMemo(() => {
@@ -245,6 +264,28 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
             : '⚠️ Unprotected Synthetic-Data Demo: Dashboard displays fictional simulated records only. No server-side authentication is enforced; do not use with real patient records.'}
         </span>
       </div>
+
+      {/* Session Not Found Banner if navigated with invalid/unknown ID */}
+      {sessionNotFoundError && (
+        <div className="bg-rose-50 border border-rose-200 text-rose-900 px-3.5 py-2.5 rounded-xl text-xs flex items-center justify-between gap-2 shadow-2xs">
+          <div className="flex items-center gap-2">
+            <AlertTriangle className="w-4 h-4 text-rose-600 shrink-0" />
+            <span className="font-medium">
+              {language === 'ar'
+                ? `تعذر العثور على الجلسة (${sessionNotFoundError}) في السجلات المحلية لهذا المتصفح.`
+                : `Session (${sessionNotFoundError}) could not be found in this browser’s local records.`}
+            </span>
+          </div>
+          <button
+            type="button"
+            onClick={() => setSessionNotFoundError(null)}
+            className="p-1 text-rose-500 hover:text-rose-800 rounded transition-colors"
+            aria-label="Dismiss"
+          >
+            <X className="w-4 h-4" />
+          </button>
+        </div>
+      )}
 
       {/* Dashboard Header */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
@@ -562,6 +603,10 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
           session={inspectedSession}
           language={language}
           onClose={() => setInspectedSession(null)}
+          onReturnToSimulator={() => {
+            setInspectedSession(null);
+            onSwitchToSimulator();
+          }}
           onSubmitReview={(id, rev) => {
             onSubmitReview(id, rev);
             setInspectedSession((prev) =>
