@@ -111,7 +111,7 @@ export const WhatsAppSimulator: React.FC<WhatsAppSimulatorProps> = ({
 
     // Only respond to actual message additions or new session loading
     if (currentCount > prevCount) {
-      if (isNearBottomRef.current) {
+      if (isNearBottomRef.current || session.status === 'COMPLETED') {
         scrollChatToBottom('smooth');
       } else {
         setHasUnreadBelow(true);
@@ -120,7 +120,7 @@ export const WhatsAppSimulator: React.FC<WhatsAppSimulatorProps> = ({
       // First mount or session reset
       scrollChatToBottom('auto');
     }
-  }, [session.messages.length, session.id]);
+  }, [session.messages.length, session.id, session.status]);
 
   // Voice recording simulation timer
   useEffect(() => {
@@ -1045,6 +1045,29 @@ export const WhatsAppSimulator: React.FC<WhatsAppSimulatorProps> = ({
                       {language === 'ar' ? dec.guidanceTextAr : dec.guidanceTextEn}
                     </p>
                   </div>
+
+                  {/* Hospital Dashboard Link Button for Hackathon Demo - Prominently Placed */}
+                  {onViewCaseInDashboard && (
+                    <div className="pt-1 pb-1 space-y-1">
+                      <button
+                        type="button"
+                        onClick={() => onViewCaseInDashboard(session.id)}
+                        className="w-full inline-flex items-center justify-center gap-2 py-2 px-3 bg-teal-800 hover:bg-teal-900 active:bg-teal-950 text-white rounded-xl text-xs font-bold transition-colors shadow-xs cursor-pointer border border-teal-700"
+                      >
+                        <ExternalLink className="w-3.5 h-3.5 shrink-0 text-teal-200" />
+                        <span>
+                          {language === 'ar'
+                            ? 'عرض هذه الحالة في لوحة المستشفى'
+                            : 'View this case in the hospital dashboard'}
+                        </span>
+                      </button>
+                      <p className="text-[10px] text-slate-500 leading-tight text-center px-1">
+                        {language === 'ar'
+                          ? 'يفتح هذا الإجراء الحالة الافتراضية في لوحة تحكم هذا المتصفح فقط. لا يتم إرسال أي إحالة لمستشفى حقيقي.'
+                          : 'This opens the simulated case in this browser’s dashboard. No referral is sent to a real hospital.'}
+                      </p>
+                    </div>
+                  )}
 
                   {/* Routed Facility Card or Absence Notice */}
                   {fac ? (
