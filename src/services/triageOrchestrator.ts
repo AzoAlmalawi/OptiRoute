@@ -784,12 +784,12 @@ export class TriageOrchestrator {
 
     const needsFollowUp =
       !hasEmergencyFlag &&
-      updated.followUpCount < 3 &&
+      updated.followUpCount < 4 &&
       ((updated.symptoms.vision_change === 'unknown' && !isFieldAnswered('vision_change')) ||
         (updated.symptoms.pain_level === 'unknown' && !isFieldAnswered('pain_level')) ||
         (updated.symptoms.redness === true && updated.symptoms.contact_lens === null && !isFieldAnswered('contact_lens')) ||
         (updated.symptoms.trauma === null && !isFieldAnswered('trauma') && updated.symptoms.onset === 'unknown') ||
-        (updated.symptoms.chemical_exposure === null && !isFieldAnswered('chemical_exposure') && (updated.symptoms.pain_level === 'moderate' || updated.symptoms.pain_level === 'severe')));
+        (updated.symptoms.chemical_exposure === null && !isFieldAnswered('chemical_exposure') && (updated.symptoms.onset === 'unknown' || updated.symptoms.pain_level === 'moderate' || updated.symptoms.pain_level === 'severe' || updated.symptoms.pain_level === 'unknown')));
 
     if (needsFollowUp) {
       updated.status = 'FOLLOW_UP';
@@ -984,8 +984,8 @@ export class TriageOrchestrator {
         id: `evt-${Date.now()}-followup`,
         timestamp: new Date().toISOString(),
         type: 'FOLLOW_UP_ASKED',
-        summaryAr: `طرح سؤال توضيحي (${updated.followUpCount}/3): استيضاح الأعراض والتقييم معلق`,
-        summaryEn: `Follow-up question asked (${updated.followUpCount}/3): Assessment pending`,
+        summaryAr: `طرح سؤال توضيحي (${updated.followUpCount}/4): استيضاح الأعراض والتقييم معلق`,
+        summaryEn: `Follow-up question asked (${updated.followUpCount}/4): Assessment pending`,
       });
 
       await this.repository.saveSession(updated);

@@ -475,6 +475,175 @@ async function runQuickReplyTests() {
     );
   }
 
+  // --------------------------------------------------------------------------
+  // Group 8: Reproduced Scenario 6 Path: Vision -> Pain -> Trauma -> Chemical -> Resolution
+  // --------------------------------------------------------------------------
+  console.log('\n--- Group 8: Reproduced Scenario 6 Flow ---');
+
+  // Arabic test of exact reproduced flow
+  let reproSessAr = await orchestrator.createNewSession('ar');
+  reproSessAr = await orchestrator.handleConsent(reproSessAr, true);
+  reproSessAr = await orchestrator.processPatientMessage(reproSessAr, {
+    text: sc6?.initialMessageAr || 'والله مدري وش فيها عيني اليوم.',
+  });
+  assert(reproSessAr.status === 'FOLLOW_UP', 'Step 1: Starts in FOLLOW_UP');
+
+  // Step 2: Answer vision: "النظر طبيعي"
+  let lastMsg = reproSessAr.messages[reproSessAr.messages.length - 1];
+  reproSessAr = await orchestrator.processPatientMessage(reproSessAr, {
+    text: 'النظر طبيعي',
+    parentMessageId: lastMsg.id,
+  });
+  assert(reproSessAr.status === 'FOLLOW_UP', 'Step 2: Still in FOLLOW_UP after vision');
+  assert(reproSessAr.symptoms.vision_change === 'none', 'Vision is resolved as none');
+
+  // Step 3: Answer pain: "لست متأكدًا"
+  lastMsg = reproSessAr.messages[reproSessAr.messages.length - 1];
+  reproSessAr = await orchestrator.processPatientMessage(reproSessAr, {
+    text: 'لست متأكدًا',
+    quickReply: {
+      id: 'qr-pain-unknown',
+      labelAr: 'لست متأكدًا',
+      labelEn: 'Not sure',
+      value: 'pain_level:unknown',
+      field: 'pain_level',
+      fieldValue: 'unknown',
+    },
+    parentMessageId: lastMsg.id,
+  });
+  assert(reproSessAr.status === 'FOLLOW_UP', 'Step 3: Still in FOLLOW_UP after pain');
+  assert(reproSessAr.symptoms.pain_level === 'unknown', 'Pain is unknown');
+
+  // Step 4: Answer trauma: "لا، لم أتعرض لإصابة"
+  lastMsg = reproSessAr.messages[reproSessAr.messages.length - 1];
+  assert(
+    lastMsg.text?.includes('ضربة') || lastMsg.text?.includes('إصابة'),
+    'Step 4 prompt is about trauma'
+  );
+  reproSessAr = await orchestrator.processPatientMessage(reproSessAr, {
+    text: 'لا، لم أتعرض لإصابة',
+    quickReply: {
+      id: 'qr-trauma-no',
+      labelAr: 'لا، لم أتعرض لإصابة',
+      labelEn: 'No, no injury',
+      value: 'trauma:false',
+      field: 'trauma',
+      fieldValue: false,
+    },
+    parentMessageId: lastMsg.id,
+  });
+
+  // Verify: Chemical question MUST be asked next, NOT prematurely finished!
+  assert(
+    reproSessAr.status === 'FOLLOW_UP',
+    'Step 4: Session stays in FOLLOW_UP to clarify chemical exposure'
+  );
+  lastMsg = reproSessAr.messages[reproSessAr.messages.length - 1];
+  assert(
+    Boolean(lastMsg.text?.includes('منظف') || lastMsg.text?.includes('كيميائية')),
+    `Step 5 prompt is chemical exposure question: "${lastMsg.text}"`
+  );
+  assert(
+    reproSessAr.symptoms.trauma === false,
+    'trauma is false'
+  );
+  assert(
+    reproSessAr.symptoms.chemical_exposure === null,
+    'chemical_exposure is still null before answering'
+  );
+
+  // Step 5a: If chemical is positive -> immediate EMERGENCY escalation
+  let emergBranch = JSON.parse(JSON.stringify(reproSessAr));
+  emergBranch = await orchestrator.processPatientMessage(emergBranch, {
+    text: 'نعم دخل رذاذ منظف/كيماويات',
+    quickReply: {
+      id: 'qr-chem-yes',
+      labelAr: 'نعم دخل رذاذ منظف/كيماويات',
+      labelEn: 'Yes, chemical splash',
+      value: 'chemical_exposure:true',
+      field: 'chemical_exposure',
+      fieldValue: true,
+    },
+    parentMessageId: lastMsg.id,
+  });
+  assert(
+    emergBranch.status === 'COMPLETED' && emergBranch.decision?.finalUrgency === 'EMERGENCY',
+    'Positive chemical answer immediately escalates to EMERGENCY'
+  );
+
+  // Step 5b: If chemical is "لست متأكدًا" -> completes with CONSERVATIVE_FALLBACK without looping
+  reproSessAr = await orchestrator.processPatientMessage(reproSessAr, {
+    text: 'لست متأكدًا',
+    quickReply: {
+      id: 'qr-chem-unknown',
+      labelAr: 'لست متأكدًا',
+      labelEn: 'Not sure',
+      value: 'chemical_exposure:null',
+      field: 'chemical_exposure',
+      fieldValue: null,
+    },
+    parentMessageId: lastMsg.id,
+  });
+  assert(
+    reproSessAr.status === 'COMPLETED',
+    'Session completes safely after chemical question answered'
+  );
+  assert(
+    reproSessAr.decision?.decisionSource === 'CONSERVATIVE_FALLBACK',
+    'Fallback applied safely when details remain unknown'
+  );
+
+  // English test of the same flow
+  let reproSessEn = await orchestrator.createNewSession('en');
+  reproSessEn = await orchestrator.handleConsent(reproSessEn, true);
+  reproSessEn = await orchestrator.processPatientMessage(reproSessEn, {
+    text: sc6?.initialMessageEn || 'I am not sure what is wrong with my eye today.',
+  });
+  // Answer vision: Vision is normal
+  let lastMsgEn = reproSessEn.messages[reproSessEn.messages.length - 1];
+  reproSessEn = await orchestrator.processPatientMessage(reproSessEn, {
+    text: 'Vision is normal',
+    parentMessageId: lastMsgEn.id,
+  });
+  // Answer pain: Not sure
+  lastMsgEn = reproSessEn.messages[reproSessEn.messages.length - 1];
+  reproSessEn = await orchestrator.processPatientMessage(reproSessEn, {
+    text: 'Not sure',
+    quickReply: {
+      id: 'qr-pain-unknown',
+      labelAr: 'لست متأكدًا',
+      labelEn: 'Not sure',
+      value: 'pain_level:unknown',
+      field: 'pain_level',
+      fieldValue: 'unknown',
+    },
+    parentMessageId: lastMsgEn.id,
+  });
+  // Answer trauma: No, no injury
+  lastMsgEn = reproSessEn.messages[reproSessEn.messages.length - 1];
+  reproSessEn = await orchestrator.processPatientMessage(reproSessEn, {
+    text: 'No, no injury',
+    quickReply: {
+      id: 'qr-trauma-no',
+      labelAr: 'لا، لم أتعرض لإصابة',
+      labelEn: 'No, no injury',
+      value: 'trauma:false',
+      field: 'trauma',
+      fieldValue: false,
+    },
+    parentMessageId: lastMsgEn.id,
+  });
+  // Must ask chemical question
+  assert(
+    reproSessEn.status === 'FOLLOW_UP',
+    'English flow stays in FOLLOW_UP for chemical question'
+  );
+  lastMsgEn = reproSessEn.messages[reproSessEn.messages.length - 1];
+  assert(
+    Boolean(lastMsgEn.text?.toLowerCase().includes('chemical') || lastMsgEn.text?.toLowerCase().includes('cleaning')),
+    'English prompt asks about cleaning/chemical splash'
+  );
+
   console.log('\n========================================');
   console.log('All Follow-Up Quick Reply Tests Passed!');
   console.log('========================================\n');
