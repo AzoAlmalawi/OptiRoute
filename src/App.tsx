@@ -301,11 +301,11 @@ export default function App() {
       />
 
       {/* Main Workspace Area */}
-      <main className="flex-1 max-w-7xl w-full mx-auto px-2 py-3 sm:p-6 min-w-0 overflow-x-hidden">
+      <main className="flex-1 max-w-7xl w-full mx-auto px-2 py-2 sm:px-4 sm:py-3 md:py-3.5 min-w-0 overflow-x-hidden">
         {currentTab === 'simulator' && (
-          <div className="space-y-4 w-full max-w-full min-w-0">
+          <div className="space-y-2.5 sm:space-y-3 w-full max-w-full min-w-0">
             {/* Top Scenario Banner & Actions */}
-            <div className="bg-white rounded-xl border border-slate-200 shadow-2xs p-3 sm:p-4 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
+            <div className="bg-white rounded-xl border border-slate-200 shadow-2xs p-2.5 sm:p-3 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2.5">
               <div className="flex items-center gap-2.5 flex-wrap min-w-0">
                 <span className="text-xs font-semibold text-slate-500 shrink-0">
                   {language === 'ar' ? 'الحالة الحالية:' : 'Current Case:'}
