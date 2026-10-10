@@ -27,7 +27,7 @@ import {
  * Creates default empty symptoms according to PRD schema.
  * Note: Boolean fields are initialized to null (unknown), NOT false.
  */
-export function createEmptySymptoms(language: Language = 'ar'): StructuredSymptoms {
+export function createEmptySymptoms(language: Language = 'en'): StructuredSymptoms {
   return {
     language,
     eye: 'unknown',

@@ -404,7 +404,7 @@ export class TriageOrchestrator {
    * Initializes a brand-new patient session
    */
   async createNewSession(
-    language: Language = 'ar',
+    language: Language = 'en',
     persist: boolean = true
   ): Promise<TriageSession> {
     const existing = await this.repository.getAllSessions();
