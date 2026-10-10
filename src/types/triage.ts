@@ -182,6 +182,7 @@ export interface TriageSession {
   consentGiven: boolean;
   status: 'AWAITING_CONSENT' | 'IN_TRIAGE' | 'FOLLOW_UP' | 'COMPLETED';
   followUpCount: number;
+  scenarioId?: string;
   messages: ChatMessage[];
   symptoms: StructuredSymptoms;
   decision?: TriageDecision;

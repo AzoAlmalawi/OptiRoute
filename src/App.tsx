@@ -9,6 +9,7 @@ import { RoadmapModal } from './components/HospitalDashboard/RoadmapModal';
 import { orchestrator } from './services/triageOrchestrator';
 import { SESSIONS_UPDATE_EVENT } from './services/providers';
 import { TriageSession, Language, DemoScenario, QuickReplyOption } from './types/triage';
+import { DEMO_SCENARIOS } from './data/scenarios';
 import { ChevronDown, ChevronUp, Layers, Activity, Sparkles, HelpCircle, RotateCcw } from 'lucide-react';
 
 export default function App() {
@@ -173,6 +174,7 @@ export default function App() {
       // 1, 2, 3: Create a fresh session with a new ID and reset state
       // (saving the fresh session preserves all existing sessions in the repository)
       const freshSession = await orchestrator.createNewSession(language, true);
+      freshSession.scenarioId = scenario.id;
       updateActiveSession(freshSession);
 
       // 4: Queue the selected scenario and require explicit consent before processing it
@@ -238,10 +240,16 @@ export default function App() {
     }
   };
 
-  const queuedTitle = queuedScenario
+  const activeCaseScenario =
+    queuedScenario ||
+    DEMO_SCENARIOS.find(
+      (s) => s.id === activeScenarioId || s.id === currentSession?.scenarioId
+    );
+
+  const activeCaseTitle = activeCaseScenario
     ? language === 'ar'
-      ? queuedScenario.titleAr
-      : queuedScenario.titleEn
+      ? activeCaseScenario.titleAr
+      : activeCaseScenario.titleEn
     : undefined;
 
   return (
@@ -265,10 +273,10 @@ export default function App() {
                 <span className="text-xs font-semibold text-slate-500 shrink-0">
                   {language === 'ar' ? 'الحالة الحالية:' : 'Current Case:'}
                 </span>
-                {queuedTitle ? (
+                {activeCaseTitle ? (
                   <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-bold bg-teal-50 text-teal-900 border border-teal-200 truncate max-w-full">
                     <span>📌</span>
-                    <span className="truncate">{queuedTitle}</span>
+                    <span className="truncate">{activeCaseTitle}</span>
                   </span>
                 ) : (
                   <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-medium bg-slate-100 text-slate-700 border border-slate-200">
@@ -403,7 +411,7 @@ export default function App() {
                     selectedCity={selectedCity}
                     onSelectCity={setSelectedCity}
                     isLoading={isProcessing}
-                    queuedScenarioTitle={queuedTitle}
+                    queuedScenarioTitle={activeCaseTitle}
                   />
                 )}
               </div>

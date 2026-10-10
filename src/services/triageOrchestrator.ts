@@ -182,6 +182,22 @@ export const STABLE_QUICK_REPLIES: Record<string, ResolvedQuickReplyAction> = {
     labelAr: 'لست متأكدًا',
     labelEn: 'Not sure',
   },
+  'contact_lens:null': {
+    id: 'qr-lens-unknown',
+    field: 'contact_lens',
+    fieldValue: null,
+    value: 'contact_lens:null',
+    labelAr: 'لست متأكدًا',
+    labelEn: 'Not sure',
+  },
+  'trauma:null': {
+    id: 'qr-trauma-unknown',
+    field: 'trauma',
+    fieldValue: null,
+    value: 'trauma:null',
+    labelAr: 'لست متأكدًا',
+    labelEn: 'Not sure',
+  },
 };
 
 /**

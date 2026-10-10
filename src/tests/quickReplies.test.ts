@@ -331,6 +331,52 @@ async function runQuickReplyTests() {
     'Emergency case routed to emergency eye facility'
   );
 
+  // --------------------------------------------------------------------------
+  // Group 6: 'Not sure' / 'لست متأكدًا' treated as unknown, does not loop
+  // --------------------------------------------------------------------------
+  console.log('\n--- Group 6: Not Sure Triaged Safely Without Looping ---');
+
+  let notSureSess = await orchestrator.createNewSession('ar');
+  notSureSess = await orchestrator.handleConsent(notSureSess, true);
+
+  // Patient with ambiguous corneal issue (red eye, light sensitivity, unknown vision change)
+  notSureSess = await orchestrator.processPatientMessage(notSureSess, {
+    text: 'عيني اليمين محمرة وتوجعني من أمس وفيها تحسس من النور، ونظري ما راح فجأة.',
+  });
+  assert(notSureSess.status === 'FOLLOW_UP', 'Prompts for follow-up on unknown vision change');
+
+  // Patient answers "لست متأكدًا"
+  notSureSess = await orchestrator.processPatientMessage(notSureSess, {
+    text: 'لست متأكدًا',
+    quickReply: {
+      id: 'qr-vision-unknown',
+      labelAr: 'لست متأكدًا',
+      labelEn: 'Not sure',
+      value: 'vision_change:unknown',
+      field: 'vision_change',
+      fieldValue: 'unknown',
+    },
+  });
+
+  // Vision change remains unknown (not false / none)
+  assert(
+    notSureSess.symptoms.vision_change === 'unknown',
+    '"لست متأكدًا" preserves vision_change as unknown (NOT none or false)'
+  );
+  assert(
+    Boolean(notSureSess.answeredFields?.vision_change),
+    'vision_change is recorded in answeredFields to prevent re-asking'
+  );
+
+  // Ensure system does not re-ask about vision change
+  const reaskedVision = notSureSess.messages.filter(
+    (m) => m.sender === 'bot' && m.text && m.text.includes('تغير في قوة النظر')
+  );
+  assert(
+    reaskedVision.length === 1,
+    `Vision question was not asked again after 'Not sure' (count=${reaskedVision.length})`
+  );
+
   console.log('\n========================================');
   console.log('All Follow-Up Quick Reply Tests Passed!');
   console.log('========================================\n');
