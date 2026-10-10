@@ -93,7 +93,10 @@ export class DemoSymptomExtractionProvider implements SymptomExtractionProvider 
       : createEmptySymptoms(language);
 
     s.language = language;
-    const lower = transcript.toLowerCase();
+    // Normalize transcript to lowercase and strip Arabic diacritics for robust matching
+    const lower = transcript
+      .toLowerCase()
+      .replace(/[\u064B-\u065F\u0670]/g, '');
     const extractedFields: Record<string, unknown> = {};
 
     // 1. Eye affected
@@ -120,6 +123,8 @@ export class DemoSymptomExtractionProvider implements SymptomExtractionProvider 
       /\bchemical\b/i,
       /\bbleach\b/i,
       /\bdetergent\b/i,
+      /\bcleaner\b/i,
+      /\bcleaning product\b/i,
       /\bacid\b/i,
       /\balkali\b/i,
       /\btoxic spray\b/i,
@@ -158,6 +163,8 @@ export class DemoSymptomExtractionProvider implements SymptomExtractionProvider 
       /حديد/i,
       /ورشة/i,
       /ضربة/i,
+      /انضربت/i,
+      /انضرب/i,
       /طارت في عيني/i,
       /جسم غريب/i,
       /إصابة/i,
@@ -470,6 +477,7 @@ export class DemoSymptomExtractionProvider implements SymptomExtractionProvider 
       /\b(very )?red\b/i,
       /حمراء/i,
       /احمرار/i,
+      /محمرة/i,
     ]);
     if (rednessEval.status === 'CONFIRMED_POSITIVE') {
       s.redness = true;
@@ -483,9 +491,16 @@ export class DemoSymptomExtractionProvider implements SymptomExtractionProvider 
     const photoEval = evaluateClinicalConcept(lower, [
       /light sensitivity/i,
       /photophobia/i,
+      /light bothers/i,
+      /bothered by light/i,
+      /sensitive to light/i,
       /حساسية من النور/i,
       /ألم مع النور/i,
       /تضايقني الإضاءة/i,
+      /النور.*يضايقني/i,
+      /النور.*يضايق/i,
+      /الضوء.*يضايق/i,
+      /حساسية من الضوء/i,
       /الضوء/i,
     ]);
     if (photoEval.status === 'CONFIRMED_POSITIVE') {

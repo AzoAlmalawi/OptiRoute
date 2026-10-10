@@ -130,6 +130,64 @@ export async function runAllSafetyTests() {
     'Regression AR: Final urgency resolves as NON_URGENT'
   );
 
+  // Scenario 4 Contact Lens Regression: Arabic Transcript
+  const sc4ArText =
+    'أنا ألبس عدسات، ومن أمس عيني اليمين محمرّة وتوجعني شوي. وكل شوي يزيد الوجع، والنور بعد يضايقني. الوجع مو قوي مرّة. نظري ما راح فجأة، وما طشّ بعيني منظّف، ولا انضربت عيني.';
+  const sc4ArExtracted = await extractor.extract(sc4ArText, 'ar');
+  assert(
+    sc4ArExtracted.symptoms.contact_lens === true,
+    'Scenario 4 AR: contact_lens is explicitly true'
+  );
+  assert(
+    sc4ArExtracted.symptoms.redness === true,
+    'Scenario 4 AR: redness is explicitly true'
+  );
+  assert(
+    sc4ArExtracted.symptoms.light_sensitivity === true,
+    'Scenario 4 AR: light_sensitivity is explicitly true'
+  );
+  assert(
+    sc4ArExtracted.symptoms.chemical_exposure === false,
+    'Scenario 4 AR: chemical_exposure is explicitly false'
+  );
+  assert(
+    sc4ArExtracted.symptoms.trauma === false,
+    'Scenario 4 AR: trauma is explicitly false'
+  );
+  assert(
+    sc4ArExtracted.symptoms.vision_change === 'unknown',
+    'Scenario 4 AR: negated sudden loss does NOT become none when corneal risk present (remains unknown)'
+  );
+
+  // Scenario 4 Contact Lens Regression: English Transcript
+  const sc4EnText =
+    'I wear contact lenses. Since yesterday, my right eye has been red and aching, and the pain is getting worse. It is not severe, but light bothers me. I have not suddenly lost my vision. No cleaner got into my eye, and I have not injured it.';
+  const sc4EnExtracted = await extractor.extract(sc4EnText, 'en');
+  assert(
+    sc4EnExtracted.symptoms.contact_lens === true,
+    'Scenario 4 EN: contact_lens is explicitly true'
+  );
+  assert(
+    sc4EnExtracted.symptoms.redness === true,
+    'Scenario 4 EN: redness is explicitly true'
+  );
+  assert(
+    sc4EnExtracted.symptoms.light_sensitivity === true,
+    'Scenario 4 EN: light_sensitivity is explicitly true'
+  );
+  assert(
+    sc4EnExtracted.symptoms.chemical_exposure === false,
+    'Scenario 4 EN: chemical_exposure is explicitly false'
+  );
+  assert(
+    sc4EnExtracted.symptoms.trauma === false,
+    'Scenario 4 EN: trauma is explicitly false'
+  );
+  assert(
+    sc4EnExtracted.symptoms.vision_change === 'unknown',
+    'Scenario 4 EN: negated sudden loss does NOT become none when corneal risk present (remains unknown)'
+  );
+
   // -------------------------------------------------------------
   // TEST GROUP 2: POSITIVE CONTROLS (Genuine Affirmative Statements)
   // -------------------------------------------------------------
