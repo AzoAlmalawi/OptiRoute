@@ -86,6 +86,9 @@ export interface TriageDecision {
   guidanceTextEn: string;
   immediateActionTextAr?: string;
   immediateActionTextEn?: string;
+  isRetainedEmergency?: boolean;
+  retainedEmergencyReasonAr?: string;
+  retainedEmergencyReasonEn?: string;
   evaluatedAt: string;
 }
 

@@ -254,8 +254,24 @@ export const SessionDetailModal: React.FC<SessionDetailModalProps> = ({
                     </div>
                   </div>
 
-                  {/* Immediate Action note if any */}
-                  {(decision.immediateActionTextAr || decision.immediateActionTextEn) && (
+                  {/* Retained emergency notice if applicable */}
+                  {decision.isRetainedEmergency && (
+                    <div className="mt-3 p-2.5 rounded-lg bg-amber-100/90 border border-amber-300 text-amber-950 text-xs font-medium leading-relaxed">
+                      <span className="font-bold block mb-0.5">
+                        🛡️ {language === 'ar' ? 'سياسة الحفاظ على توصية الطوارئ:' : 'Retained Emergency Precaution:'}
+                      </span>
+                      <span>
+                        {language === 'ar'
+                          ? decision.retainedEmergencyReasonAr ||
+                            'تم تحديث إجابتك. بقيت توصية الطوارئ احترازيًا لأنها صدرت بناءً على إجابة سابقة، وفق سياسة النموذج التجريبي.'
+                          : decision.retainedEmergencyReasonEn ||
+                            'Your answer has been updated. The emergency recommendation was retained as a safety precaution because it was issued based on a previous answer, per demo safety policy.'}
+                      </span>
+                    </div>
+                  )}
+
+                  {/* Immediate Action note if any (only when not retained after negation) */}
+                  {!decision.isRetainedEmergency && (decision.immediateActionTextAr || decision.immediateActionTextEn) && (
                     <div className="mt-3 p-2.5 rounded-lg bg-white/80 border border-black/10 text-xs font-semibold">
                       {language === 'ar' ? decision.immediateActionTextAr : decision.immediateActionTextEn}
                     </div>

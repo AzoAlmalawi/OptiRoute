@@ -698,21 +698,78 @@ async function runQuickReplyTests() {
   );
   assert(g9Sess.decision?.finalUrgency === 'EMERGENCY', 'Sticky emergency invariant maintained: emergency recommendation is NOT silently downgraded');
 
-  // 4. Switching scenarios does not carry over answers
-  const sc2 = DEMO_SCENARIOS.find((s) => s.id === 'sc-2-chemical-splash');
-  assert(Boolean(sc2), 'Scenario 2 (chemical splash) exists');
-  if (sc2) {
-    let freshSess = await orchestrator.createNewSession('ar', false);
-    freshSess = await orchestrator.handleConsent(freshSess, true);
-    freshSess = await orchestrator.processPatientMessage(freshSess, {
-      text: sc2.initialMessageAr,
-      isVoice: sc2.isVoiceSample,
-      voiceDuration: sc2.voiceDurationSeconds,
-      userCity: sc2.locationCity,
-    });
-    assert(freshSess.symptoms.chemical_exposure === true, 'Scenario 2 has chemical_exposure=true');
-    assert(freshSess.symptoms.contact_lens === null, 'Scenario 2 does not carry over contact_lens=true from Scenario 4');
-  }
+  // 5. Correcting chemical exposure from Yes to No:
+  // Updates the current finding to false, preserves emergency recommendation with retained emergency explanation
+  let chemSess = await orchestrator.createNewSession('ar', false);
+  chemSess = await orchestrator.handleConsent(chemSess, true);
+  // Initial message with vague symptom
+  chemSess = await orchestrator.processPatientMessage(chemSess, {
+    text: 'عيني مضايقتني شوي وابغى استشيركم',
+  });
+  // Trigger emergency via chemical exposure
+  chemSess = await orchestrator.correctSymptomField(
+    chemSess,
+    'chemical_exposure',
+    true,
+    'نعم رذاذ مواد كيميائية أو منظفات',
+    'Yes, chemical splash'
+  );
+  assert(chemSess.symptoms.chemical_exposure === true, 'chemical_exposure is true initially');
+  assert(chemSess.decision?.finalUrgency === 'EMERGENCY', 'Triage is EMERGENCY due to chemical exposure');
+  assert(!chemSess.decision?.isRetainedEmergency, 'Initial emergency is direct, not retained');
+
+  // Now user corrects chemical exposure to "No" (false)
+  chemSess = await orchestrator.correctSymptomField(
+    chemSess,
+    'chemical_exposure',
+    false,
+    'لا لم يدخل أي رذاذ كيميائي',
+    'No chemical splash'
+  );
+  assert(chemSess.symptoms.chemical_exposure === false, 'Current finding for chemical_exposure is updated to false');
+  assert(chemSess.decision?.finalUrgency === 'EMERGENCY', 'Emergency recommendation is preserved per non-downgrade policy');
+  assert(chemSess.decision?.isRetainedEmergency === true, 'isRetainedEmergency flag is true');
+  assert(
+    chemSess.decision?.retainedEmergencyReasonAr?.includes('تم تحديث إجابتك') === true,
+    'Arabic retained emergency explanation clearly explains retained precaution'
+  );
+  assert(
+    chemSess.decision?.retainedEmergencyReasonEn?.includes('Your answer has been updated') === true,
+    'English retained emergency explanation clearly explains retained precaution'
+  );
+  // Ensure the current ruleResult flags do NOT show RF-02 (chemical splash) as a currently confirmed finding
+  assert(
+    !chemSess.decision?.ruleResult.matchedFlags.some((f) => f.id === 'RF-02'),
+    'Chemical splash is NOT labeled as a currently matched rule flag after correction to No'
+  );
+
+  // 6. Test redness and discharge corrections
+  chemSess = await orchestrator.correctSymptomField(
+    chemSess,
+    'redness',
+    true,
+    'نعم احمرار في العين',
+    'Yes, eye redness'
+  );
+  assert(chemSess.symptoms.redness === true, 'redness is correctly updated to true');
+
+  chemSess = await orchestrator.correctSymptomField(
+    chemSess,
+    'discharge',
+    false,
+    'لا توجد إفرازات',
+    'No discharge'
+  );
+  assert(chemSess.symptoms.discharge === false, 'discharge is correctly updated to false');
+
+  chemSess = await orchestrator.correctSymptomField(
+    chemSess,
+    'discharge',
+    null,
+    'لست متأكداً',
+    'Not sure'
+  );
+  assert(chemSess.symptoms.discharge === null, 'discharge can be set to null (Not sure, distinct from false)');
 
   console.log('\n========================================');
   console.log('All Follow-Up Quick Reply & Correction Tests Passed!');

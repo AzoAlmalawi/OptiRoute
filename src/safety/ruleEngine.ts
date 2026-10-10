@@ -201,11 +201,18 @@ export function runDeterministicRuleEngine(
 
   const structuredResult = evaluateStructuredFields(symptoms);
 
-  // Union of all matched red flags
-  const allMatchedRuleIds = new Set<string>([
-    ...Array.from(rawMatchedRuleIds),
-    ...structuredResult.matchedRuleIds,
-  ]);
+  // Union of all matched red flags, EXCEPT when explicitly negated in structured symptoms
+  const allMatchedRuleIds = new Set<string>();
+
+  for (const id of rawMatchedRuleIds) {
+    // If the structured field was explicitly negated (false), do not treat raw text scan as an active red flag
+    if (id === 'RF-02' && symptoms.chemical_exposure === false) continue;
+    if (id === 'RF-03' && symptoms.trauma === false) continue;
+    allMatchedRuleIds.add(id);
+  }
+  for (const id of structuredResult.matchedRuleIds) {
+    allMatchedRuleIds.add(id);
+  }
 
   const matchedFlags = RED_FLAG_RULES.filter((rule) => allMatchedRuleIds.has(rule.id));
   const isEmergency = matchedFlags.some((f) => f.triggersEmergency);
@@ -306,8 +313,20 @@ export function resolveTriageDecision(
   let resolvedRank = Math.max(ruleRank, modelRank);
 
   // Safety invariant: Sticky Emergency across session lifetime
+  let isRetainedEmergency = false;
+  let retainedEmergencyReasonAr: string | undefined = undefined;
+  let retainedEmergencyReasonEn: string | undefined = undefined;
+
   if (previousDecision && URGENCY_RANK[previousDecision.finalUrgency] === 3) {
     resolvedRank = 3;
+    // Check if the current rules/model on their own would NOT have yielded EMERGENCY
+    if (Math.max(ruleRank, modelRank) < 3) {
+      isRetainedEmergency = true;
+      retainedEmergencyReasonAr =
+        'تم تحديث إجابتك. بقيت توصية الطوارئ احترازيًا لأنها صدرت بناءً على إجابة سابقة، وفق سياسة النموذج التجريبي.';
+      retainedEmergencyReasonEn =
+        'Your answer has been updated. The emergency recommendation was retained as a safety precaution because it was issued based on a previous answer, per demo safety policy.';
+    }
   }
 
   // PRD Conservative Fallback Policy for Incomplete / Unknown data:
@@ -352,10 +371,17 @@ export function resolveTriageDecision(
     guidanceTextAr = 'التقييم قيد الاستكمال. جارٍ استيضاح الأعراض المتبقية للتحقق من درجة الاستعجال.';
     guidanceTextEn = 'Assessment pending. Asking clarifying questions to complete clinical urgency triage.';
   } else if (finalUrgency === 'EMERGENCY') {
-    guidanceTextAr =
-      'حالتك مصنفة كحالة طارئة تتطلب فحصاً فورياً في طوارئ العيون لتجنب أي ضرر دائم على البصر. يرجى التوجه فوراً لأقرب مركز طوارئ عيون.';
-    guidanceTextEn =
-      'Your symptoms indicate an emergency requiring immediate specialized eye care to prevent potential vision loss. Please proceed straight to the nearest emergency eye department.';
+    if (isRetainedEmergency) {
+      guidanceTextAr =
+        'تم تحديث إجابتك. بقيت توصية الطوارئ احترازيًا لأنها صدرت بناءً على إجابة سابقة، وفق سياسة النموذج التجريبي. يوصى بالتقييم الفوري للتأكد التام من سلامة العين.';
+      guidanceTextEn =
+        'Your answer has been updated. The emergency recommendation was retained as a safety precaution because it was issued based on a previous answer, per demo safety policy. Immediate evaluation is recommended to ensure eye safety.';
+    } else {
+      guidanceTextAr =
+        'حالتك مصنفة كحالة طارئة تتطلب فحصاً فورياً في طوارئ العيون لتجنب أي ضرر دائم على البصر. يرجى التوجه فوراً لأقرب مركز طوارئ عيون.';
+      guidanceTextEn =
+        'Your symptoms indicate an emergency requiring immediate specialized eye care to prevent potential vision loss. Please proceed straight to the nearest emergency eye department.';
+    }
   } else if (finalUrgency === 'URGENT') {
     if (decisionSource === 'CONSERVATIVE_FALLBACK') {
       guidanceTextAr =
@@ -387,6 +413,9 @@ export function resolveTriageDecision(
     guidanceTextEn,
     immediateActionTextAr,
     immediateActionTextEn,
+    isRetainedEmergency,
+    retainedEmergencyReasonAr,
+    retainedEmergencyReasonEn,
     evaluatedAt: new Date().toISOString(),
   };
 }

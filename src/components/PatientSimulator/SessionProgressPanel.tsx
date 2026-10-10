@@ -166,6 +166,23 @@ export const SessionProgressPanel: React.FC<SessionProgressPanelProps> = ({
               </span>
             </div>
 
+            {decision.isRetainedEmergency && (
+              <div className="mt-1.5 pt-1.5 border-t border-slate-200">
+                <div className="text-[10px] text-amber-900 bg-amber-50 border border-amber-200 p-1.5 rounded font-medium leading-relaxed">
+                  <span className="font-bold block mb-0.5">
+                    🛡️ {language === 'ar' ? 'سياسة الحفاظ على توصية الطوارئ:' : 'Retained Emergency Precaution:'}
+                  </span>
+                  <span>
+                    {language === 'ar'
+                      ? decision.retainedEmergencyReasonAr ||
+                        'تم تحديث إجابتك. بقيت توصية الطوارئ احترازيًا لأنها صدرت بناءً على إجابة سابقة، وفق سياسة النموذج التجريبي.'
+                      : decision.retainedEmergencyReasonEn ||
+                        'Your answer has been updated. The emergency recommendation was retained as a safety precaution because it was issued based on a previous answer, per demo safety policy.'}
+                  </span>
+                </div>
+              </div>
+            )}
+
             {decision.ruleResult.matchedFlags.length > 0 && (
               <div className="mt-1.5 pt-1.5 border-t border-slate-200">
                 <span className="text-[10px] text-rose-700 font-semibold block mb-1">

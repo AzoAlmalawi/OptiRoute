@@ -523,6 +523,8 @@ export const WhatsAppSimulator: React.FC<WhatsAppSimulatorProps> = ({
                                   <option value="chemical_exposure">{language === 'ar' ? 'رذاذ مواد كيميائية أو منظفات' : 'Chemical / Cleaning splash'}</option>
                                   <option value="contact_lens">{language === 'ar' ? 'ارتداء العدسات اللاصقة' : 'Contact lens wear'}</option>
                                   <option value="light_sensitivity">{language === 'ar' ? 'حساسية الضوء' : 'Light sensitivity'}</option>
+                                  <option value="redness">{language === 'ar' ? 'احمرار العين' : 'Eye redness'}</option>
+                                  <option value="discharge">{language === 'ar' ? 'إفرازات العين' : 'Eye discharge'}</option>
                                   <option value="eye">{language === 'ar' ? 'العين المصابة' : 'Affected eye'}</option>
                                   <option value="onset">{language === 'ar' ? 'سرعة بداية الأعراض' : 'Onset speed'}</option>
                                 </select>
@@ -773,6 +775,76 @@ export const WhatsAppSimulator: React.FC<WhatsAppSimulatorProps> = ({
                                       </>
                                     )}
 
+                                    {correctingField === 'redness' && (
+                                      <>
+                                        <button
+                                          type="button"
+                                          onClick={() => {
+                                            onCorrectField('redness', true, 'نعم احمرار في العين', 'Yes, eye redness');
+                                            setCorrectingField(null);
+                                          }}
+                                          className="text-left rtl:text-right p-1.5 rounded bg-white hover:bg-teal-50 border border-slate-200 text-slate-800"
+                                        >
+                                          {language === 'ar' ? '(+) نعم احمرار' : '(+) Yes, redness'}
+                                        </button>
+                                        <button
+                                          type="button"
+                                          onClick={() => {
+                                            onCorrectField('redness', false, 'لا يوجد احمرار', 'No redness');
+                                            setCorrectingField(null);
+                                          }}
+                                          className="text-left rtl:text-right p-1.5 rounded bg-white hover:bg-teal-50 border border-slate-200 text-slate-800"
+                                        >
+                                          {language === 'ar' ? '(-) لا يوجد احمرار' : '(-) No redness'}
+                                        </button>
+                                        <button
+                                          type="button"
+                                          onClick={() => {
+                                            onCorrectField('redness', null, 'لست متأكداً', 'Not sure');
+                                            setCorrectingField(null);
+                                          }}
+                                          className="text-left rtl:text-right p-1.5 rounded bg-white hover:bg-amber-50 border border-slate-200 text-amber-800"
+                                        >
+                                          {language === 'ar' ? '(?) لست متأكداً' : '(?) Not sure'}
+                                        </button>
+                                      </>
+                                    )}
+
+                                    {correctingField === 'discharge' && (
+                                      <>
+                                        <button
+                                          type="button"
+                                          onClick={() => {
+                                            onCorrectField('discharge', true, 'نعم إفرازات في العين', 'Yes, eye discharge');
+                                            setCorrectingField(null);
+                                          }}
+                                          className="text-left rtl:text-right p-1.5 rounded bg-white hover:bg-teal-50 border border-slate-200 text-slate-800"
+                                        >
+                                          {language === 'ar' ? '(+) نعم إفرازات' : '(+) Yes, discharge'}
+                                        </button>
+                                        <button
+                                          type="button"
+                                          onClick={() => {
+                                            onCorrectField('discharge', false, 'لا توجد إفرازات', 'No discharge');
+                                            setCorrectingField(null);
+                                          }}
+                                          className="text-left rtl:text-right p-1.5 rounded bg-white hover:bg-teal-50 border border-slate-200 text-slate-800"
+                                        >
+                                          {language === 'ar' ? '(-) لا توجد إفرازات' : '(-) No discharge'}
+                                        </button>
+                                        <button
+                                          type="button"
+                                          onClick={() => {
+                                            onCorrectField('discharge', null, 'لست متأكداً', 'Not sure');
+                                            setCorrectingField(null);
+                                          }}
+                                          className="text-left rtl:text-right p-1.5 rounded bg-white hover:bg-amber-50 border border-slate-200 text-amber-800"
+                                        >
+                                          {language === 'ar' ? '(?) لست متأكداً' : '(?) Not sure'}
+                                        </button>
+                                      </>
+                                    )}
+
                                     {correctingField === 'eye' && (
                                       <>
                                         <button
@@ -871,8 +943,8 @@ export const WhatsAppSimulator: React.FC<WhatsAppSimulatorProps> = ({
                     </div>
                   </div>
 
-                  {/* Immediate Action if chemical splash / trauma */}
-                  {(dec.immediateActionTextAr || dec.immediateActionTextEn) && (
+                  {/* Immediate Action if chemical splash / trauma (only if confirmed or not negated) */}
+                  {!dec.isRetainedEmergency && (dec.immediateActionTextAr || dec.immediateActionTextEn) && (
                     <div className="bg-rose-100/90 text-rose-950 p-2.5 rounded-xl border border-rose-200 text-xs leading-relaxed font-semibold">
                       {language === 'ar' ? dec.immediateActionTextAr : dec.immediateActionTextEn}
                     </div>
@@ -884,7 +956,15 @@ export const WhatsAppSimulator: React.FC<WhatsAppSimulatorProps> = ({
                       {language === 'ar' ? 'سبب التقييم ومطابقة الأعراض:' : 'Assessment Reason:'}
                     </span>
                     <p className="text-xs leading-relaxed text-slate-800">
-                      {dec.ruleResult?.matchedFlags && dec.ruleResult.matchedFlags.length > 0 ? (
+                      {dec.isRetainedEmergency ? (
+                        <span className="text-amber-900 font-medium">
+                          {language === 'ar'
+                            ? dec.retainedEmergencyReasonAr ||
+                              'تم تحديث إجابتك. بقيت توصية الطوارئ احترازيًا لأنها صدرت بناءً على إجابة سابقة، وفق سياسة النموذج التجريبي.'
+                            : dec.retainedEmergencyReasonEn ||
+                              'Your answer has been updated. The emergency recommendation was retained as a safety precaution because it was issued based on a previous answer, per demo safety policy.'}
+                        </span>
+                      ) : dec.ruleResult?.matchedFlags && dec.ruleResult.matchedFlags.length > 0 ? (
                         <span>
                           {language === 'ar'
                             ? `تم رصد مؤشرات حرجة: ${dec.ruleResult.matchedFlags.map((f) => f.titleAr).join('، ')}.`
