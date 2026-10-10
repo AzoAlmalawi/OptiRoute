@@ -121,14 +121,22 @@ export function generateSeedSessions(baseDate: Date = new Date()): TriageSession
         id: 'msg-seed-1-welcome',
         sender: 'system',
         type: 'consent',
-        text: 'مرحباً بك في نظام الفرز البصري الذكي (بصيرة). نساعدك في معرفة مدى إلحاح حالتك وتوجيهك للمركز المناسب.\n⚠️ تنبيه طبي هام: هذا نموذج تجريبي افتراضي وليس أداة تشخيصية أو علاجية. هل توافق على المتابعة؟',
+        text:
+          'مرحبًا بك في OptiRoute. نساعدك على معرفة مدى استعجال أعراض العين والجهة المناسبة للتوجه إليها.\n\n' +
+          '⚠️ إشعار هام: هذه تجربة لحالات افتراضية، وليست تشخيصًا طبيًا ولا تقدم وصفات علاجية. في حالات الطوارئ القصوى، اتصل فورًا بالهلال الأحمر (997) أو توجه لأقرب مستشفى.',
         timestamp: emergencyStarted,
         quickReplies: [
           {
             id: 'consent-yes',
-            labelAr: 'أوافق وأرغب بالمتابعة ✅',
-            labelEn: 'I Consent & Proceed ✅',
+            labelAr: 'أوافق وأبدأ التجربة',
+            labelEn: 'I agree and start demo',
             value: 'CONSENT_GRANTED',
+          },
+          {
+            id: 'consent-no',
+            labelAr: 'لا أوافق (إلغاء)',
+            labelEn: 'Decline (Cancel)',
+            value: 'CONSENT_DECLINED',
           },
         ],
       },
@@ -136,7 +144,7 @@ export function generateSeedSessions(baseDate: Date = new Date()): TriageSession
         id: 'msg-seed-1-consent',
         sender: 'patient',
         type: 'text',
-        text: 'أوافق وأرغب بالمتابعة ✅',
+        text: 'أوافق وأبدأ التجربة',
         timestamp: emergencyConsentTime,
       },
       {
@@ -291,14 +299,22 @@ export function generateSeedSessions(baseDate: Date = new Date()): TriageSession
         id: 'msg-seed-2-welcome',
         sender: 'system',
         type: 'consent',
-        text: 'مرحباً بك في نظام الفرز البصري الذكي (بصيرة).\n⚠️ تنبيه طبي هام: هذا نموذج تجريبي افتراضي وليس أداة تشخيصية أو علاجية. هل توافق على المتابعة؟',
+        text:
+          'مرحبًا بك في OptiRoute. نساعدك على معرفة مدى استعجال أعراض العين والجهة المناسبة للتوجه إليها.\n\n' +
+          '⚠️ إشعار هام: هذه تجربة لحالات افتراضية، وليست تشخيصًا طبيًا ولا تقدم وصفات علاجية. في حالات الطوارئ القصوى، اتصل فورًا بالهلال الأحمر (997) أو توجه لأقرب مستشفى.',
         timestamp: urgentStarted,
         quickReplies: [
           {
             id: 'consent-yes',
-            labelAr: 'أوافق وأرغب بالمتابعة ✅',
-            labelEn: 'I Consent & Proceed ✅',
+            labelAr: 'أوافق وأبدأ التجربة',
+            labelEn: 'I agree and start demo',
             value: 'CONSENT_GRANTED',
+          },
+          {
+            id: 'consent-no',
+            labelAr: 'لا أوافق (إلغاء)',
+            labelEn: 'Decline (Cancel)',
+            value: 'CONSENT_DECLINED',
           },
         ],
       },
@@ -306,7 +322,7 @@ export function generateSeedSessions(baseDate: Date = new Date()): TriageSession
         id: 'msg-seed-2-consent',
         sender: 'patient',
         type: 'text',
-        text: 'أوافق وأرغب بالمتابعة ✅',
+        text: 'أوافق وأبدأ التجربة',
         timestamp: urgentConsentTime,
       },
       {
@@ -485,14 +501,22 @@ export function generateSeedSessions(baseDate: Date = new Date()): TriageSession
         id: 'msg-seed-3-welcome',
         sender: 'system',
         type: 'consent',
-        text: 'مرحباً بك في نظام الفرز البصري الذكي (بصيرة).\n⚠️ تنبيه طبي هام: هذا نموذج تجريبي افتراضي وليس أداة تشخيصية أو علاجية. هل توافق على المتابعة؟',
+        text:
+          'مرحبًا بك في OptiRoute. نساعدك على معرفة مدى استعجال أعراض العين والجهة المناسبة للتوجه إليها.\n\n' +
+          '⚠️ إشعار هام: هذه تجربة لحالات افتراضية، وليست تشخيصًا طبيًا ولا تقدم وصفات علاجية. في حالات الطوارئ القصوى، اتصل فورًا بالهلال الأحمر (997) أو توجه لأقرب مستشفى.',
         timestamp: nonUrgentStarted,
         quickReplies: [
           {
             id: 'consent-yes',
-            labelAr: 'أوافق وأرغب بالمتابعة ✅',
-            labelEn: 'I Consent & Proceed ✅',
+            labelAr: 'أوافق وأبدأ التجربة',
+            labelEn: 'I agree and start demo',
             value: 'CONSENT_GRANTED',
+          },
+          {
+            id: 'consent-no',
+            labelAr: 'لا أوافق (إلغاء)',
+            labelEn: 'Decline (Cancel)',
+            value: 'CONSENT_DECLINED',
           },
         ],
       },
@@ -500,7 +524,7 @@ export function generateSeedSessions(baseDate: Date = new Date()): TriageSession
         id: 'msg-seed-3-consent',
         sender: 'patient',
         type: 'text',
-        text: 'أوافق وأرغب بالمتابعة ✅',
+        text: 'أوافق وأبدأ التجربة',
         timestamp: nonUrgentConsentTime,
       },
       {

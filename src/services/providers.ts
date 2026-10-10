@@ -600,8 +600,8 @@ export class DemoUrgencySuggestionProvider implements UrgencySuggestionProvider 
   }
 }
 
-const STORAGE_KEY = 'baseera_ophthalmic_triage_sessions_v1';
-export const SESSIONS_UPDATE_EVENT = 'baseera_sessions_updated';
+const STORAGE_KEY = 'optiroute_triage_sessions_v2';
+export const SESSIONS_UPDATE_EVENT = 'optiroute_sessions_updated';
 
 /**
  * Safely normalizes and migrates locally stored sessions.

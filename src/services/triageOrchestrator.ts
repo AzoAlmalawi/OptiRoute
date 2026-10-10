@@ -378,8 +378,8 @@ export class TriageOrchestrator {
       quickReplies: [
         {
           id: 'consent-yes',
-          labelAr: 'أوافق وأبدأ التجربة ✅',
-          labelEn: 'I agree and start demo ✅',
+          labelAr: 'أوافق وأبدأ التجربة',
+          labelEn: 'I agree and start demo',
           value: 'CONSENT_GRANTED',
         },
         {
