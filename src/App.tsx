@@ -300,7 +300,7 @@ export default function App() {
       />
 
       {/* Main Workspace Area */}
-      <main className="flex-1 max-w-7xl w-full mx-auto p-3 sm:p-6 min-w-0 overflow-x-hidden">
+      <main className="flex-1 max-w-7xl w-full mx-auto px-2 py-3 sm:p-6 min-w-0 overflow-x-hidden">
         {currentTab === 'simulator' && (
           <div className="space-y-4 w-full max-w-full min-w-0">
             {/* Top Scenario Banner & Actions */}

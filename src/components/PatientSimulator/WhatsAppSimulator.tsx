@@ -195,7 +195,7 @@ export const WhatsAppSimulator: React.FC<WhatsAppSimulatorProps> = ({
   };
 
   return (
-    <div className="flex flex-col h-[680px] sm:h-[740px] md:h-[780px] w-full max-w-full sm:max-w-[480px] md:max-w-[620px] lg:max-w-[680px] mx-auto bg-slate-900 rounded-2xl sm:rounded-3xl overflow-hidden shadow-xl border-2 sm:border-4 border-slate-800">
+    <div className="flex flex-col h-[calc(100dvh-200px)] min-h-[580px] max-h-[760px] sm:h-[calc(100dvh-220px)] sm:min-h-[620px] sm:max-h-[760px] md:h-[calc(100dvh-220px)] md:min-h-[660px] md:max-h-[780px] w-full max-w-full sm:max-w-[440px] md:max-w-[560px] lg:max-w-[610px] mx-auto bg-slate-900 rounded-2xl sm:rounded-3xl overflow-hidden shadow-xl border-2 sm:border-4 border-slate-800">
       {/* Top Phone Camera / Speaker notch simulation */}
       <div className="bg-slate-900 px-4 sm:px-6 pt-2 pb-1 flex items-center justify-between text-[11px] text-slate-400 select-none">
         <span className="font-mono">09:41</span>
