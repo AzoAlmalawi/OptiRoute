@@ -377,14 +377,20 @@ export const WhatsAppSimulator: React.FC<WhatsAppSimulatorProps> = ({
                             ? `تم رصد مؤشرات حرجة: ${dec.ruleResult.matchedFlags.map((f) => f.titleAr).join('، ')}.`
                             : `Critical indicators detected: ${dec.ruleResult.matchedFlags.map((f) => f.titleEn).join(', ')}.`}
                         </span>
+                      ) : dec.decisionSource === 'CONSERVATIVE_FALLBACK' ? (
+                        <span>
+                          {language === 'ar'
+                            ? 'نظراً لعدم اكتمال أو غموض بعض البيانات الواردة في الوصف، يوصى بالفحص الطبي في اليوم نفسه كإجراء احترازي لسلامتك.'
+                            : 'Due to insufficient or unclear information in the description, a same-day medical assessment is recommended as a safety precaution.'}
+                        </span>
                       ) : (
                         <span>
                           {language === 'ar'
                             ? dec.finalUrgency === 'URGENT'
-                              ? 'أعراض تتطلب فحصاً تخصصياً في اليوم نفسه لاستبعاد أي التهاب بالقرنية أو العين.'
+                              ? 'أعراض عاجلة تتطلب فحصاً تخصصياً في اليوم نفسه بناءً على استمرار الألم أو حساسية الضوء.'
                               : 'أعراض سطحية مستقرة لا تشير إلى علامات خطورة حادة.'
                             : dec.finalUrgency === 'URGENT'
-                            ? 'Symptoms warrant same-day specialist assessment to rule out corneal or anterior segment inflammation.'
+                            ? 'Urgent symptoms warrant same-day specialist assessment based on persistent pain or light sensitivity.'
                             : 'Superficial, stable symptoms with no acute red-flag indicators.'}
                         </span>
                       )}

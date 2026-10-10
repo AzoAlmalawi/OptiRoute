@@ -377,6 +377,104 @@ async function runQuickReplyTests() {
     `Vision question was not asked again after 'Not sure' (count=${reaskedVision.length})`
   );
 
+  // --------------------------------------------------------------------------
+  // Group 7: Independent Trauma and Chemical-Exposure Follow-Up & Explanation
+  // --------------------------------------------------------------------------
+  console.log('\n--- Group 7: Independent Trauma and Chemical Follow-Up ---');
+
+  let testSessTrauma = await orchestrator.createNewSession('ar');
+  testSessTrauma = await orchestrator.handleConsent(testSessTrauma, true);
+
+  // Vague message with no onset or trauma info
+  testSessTrauma = await orchestrator.processPatientMessage(testSessTrauma, {
+    text: 'عيني مضايقتني ومو مرتاح لها أبد.',
+  });
+
+  // Check if first asked about vision
+  if (testSessTrauma.status === 'FOLLOW_UP') {
+    const q1 = testSessTrauma.messages[testSessTrauma.messages.length - 1];
+    // Answer vision as normal
+    testSessTrauma = await orchestrator.processPatientMessage(testSessTrauma, {
+      text: 'النظر طبيعي',
+      parentMessageId: q1.id,
+    });
+  }
+
+  // Next question for pain or trauma
+  if (testSessTrauma.status === 'FOLLOW_UP') {
+    const q2 = testSessTrauma.messages[testSessTrauma.messages.length - 1];
+    testSessTrauma = await orchestrator.processPatientMessage(testSessTrauma, {
+      text: 'لا يوجد ألم',
+      parentMessageId: q2.id,
+    });
+  }
+
+  // Now if asked about trauma:
+  if (testSessTrauma.status === 'FOLLOW_UP') {
+    const q3 = testSessTrauma.messages[testSessTrauma.messages.length - 1];
+    if (q3.text?.includes('ضربة') || q3.text?.includes('إصابة')) {
+      // Must NOT ask about cleaning chemicals in the same question
+      assert(
+        !q3.text?.includes('منظف') && !q3.text?.includes('كيماويات'),
+        'Trauma question is independent and does not ask about chemicals'
+      );
+      // Answer trauma affirmative
+      testSessTrauma = await orchestrator.processPatientMessage(testSessTrauma, {
+        text: 'نعم تعرضت لضربة/إصابة',
+        quickReply: {
+          id: 'qr-trauma-yes',
+          labelAr: 'نعم تعرضت لضربة/إصابة',
+          labelEn: 'Yes, had trauma/injury',
+          value: 'trauma:true',
+          field: 'trauma',
+          fieldValue: true,
+        },
+      });
+
+      assert(testSessTrauma.symptoms.trauma === true, 'trauma is true');
+      assert(
+        testSessTrauma.symptoms.chemical_exposure === null,
+        'chemical_exposure remains untouched (null) when answering trauma'
+      );
+      // Immediate emergency escalation
+      assert(
+        testSessTrauma.decision?.finalUrgency === 'EMERGENCY',
+        'Direct trauma hit escalates immediately to EMERGENCY'
+      );
+    }
+  }
+
+  // Test Conservative Fallback explanation text on Scenario 6
+  const sc6 = DEMO_SCENARIOS.find((s) => s.id === 'sc-6-unclear-incomplete');
+  if (sc6) {
+    let sc6Sess = await orchestrator.createNewSession('ar');
+    sc6Sess = await orchestrator.handleConsent(sc6Sess, true);
+    sc6Sess = await orchestrator.processPatientMessage(sc6Sess, {
+      text: sc6.initialMessageAr,
+    });
+    // Respond "لست متأكدًا" to all follow-ups to trigger conservative fallback
+    while (sc6Sess.status === 'FOLLOW_UP') {
+      const lastMsg = sc6Sess.messages[sc6Sess.messages.length - 1];
+      sc6Sess = await orchestrator.processPatientMessage(sc6Sess, {
+        text: 'لست متأكدًا',
+        parentMessageId: lastMsg.id,
+      });
+    }
+
+    assert(
+      sc6Sess.decision?.decisionSource === 'CONSERVATIVE_FALLBACK',
+      'Unclear scenario resolves with CONSERVATIVE_FALLBACK'
+    );
+    assert(
+      sc6Sess.decision?.guidanceTextAr.includes('عدم اكتمال أو غموض') === true,
+      'Arabic guidance text explicitly mentions incomplete/unclear information'
+    );
+    assert(
+      sc6Sess.decision?.guidanceTextEn.includes('incomplete or unclear') === true,
+      'English guidance text explicitly mentions incomplete or unclear information'
+    );
+  }
+
   console.log('\n========================================');
   console.log('All Follow-Up Quick Reply Tests Passed!');
   console.log('========================================\n');

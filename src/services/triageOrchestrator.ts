@@ -123,22 +123,40 @@ export const STABLE_QUICK_REPLIES: Record<string, ResolvedQuickReplyAction> = {
     labelEn: 'No lenses',
   },
 
-  // Trauma / splash options
+  // Trauma options
   'trauma:false': {
-    id: 'qr-trauma-none',
+    id: 'qr-trauma-no',
     field: 'trauma',
     fieldValue: false,
     value: 'trauma:false',
-    labelAr: 'لا إصابة ولا كيماويات',
-    labelEn: 'No trauma or chemicals',
+    labelAr: 'لا، لم أتعرض لإصابة',
+    labelEn: 'No, no injury',
   },
   'trauma:true': {
     id: 'qr-trauma-yes',
     field: 'trauma',
     fieldValue: true,
     value: 'trauma:true',
-    labelAr: 'نعم تعرضت لضربة',
-    labelEn: 'Yes, had trauma',
+    labelAr: 'نعم تعرضت لضربة/إصابة',
+    labelEn: 'Yes, had trauma/injury',
+  },
+
+  // Chemical exposure options
+  'chemical_exposure:false': {
+    id: 'qr-chem-no',
+    field: 'chemical_exposure',
+    fieldValue: false,
+    value: 'chemical_exposure:false',
+    labelAr: 'لا، لم تدخل مواد كيميائية',
+    labelEn: 'No chemical exposure',
+  },
+  'chemical_exposure:true': {
+    id: 'qr-chem-yes',
+    field: 'chemical_exposure',
+    fieldValue: true,
+    value: 'chemical_exposure:true',
+    labelAr: 'نعم دخل رذاذ منظف/كيماويات',
+    labelEn: 'Yes, chemical splash',
   },
 
   // Onset options
@@ -195,6 +213,14 @@ export const STABLE_QUICK_REPLIES: Record<string, ResolvedQuickReplyAction> = {
     field: 'trauma',
     fieldValue: null,
     value: 'trauma:null',
+    labelAr: 'لست متأكدًا',
+    labelEn: 'Not sure',
+  },
+  'chemical_exposure:null': {
+    id: 'qr-chem-unknown',
+    field: 'chemical_exposure',
+    fieldValue: null,
+    value: 'chemical_exposure:null',
     labelAr: 'لست متأكدًا',
     labelEn: 'Not sure',
   },
@@ -300,7 +326,12 @@ export function resolveQuickReplyFromInput(
   if (
     clean === 'لا إصابة ولا كيماويات' ||
     clean === 'لا يوجد أي إصابة ولا مواد كيميائية' ||
-    lower === 'no trauma or chemicals'
+    clean === 'لا، لم أتعرض لإصابة' ||
+    clean === 'لا لم أتعرض لإصابة' ||
+    clean === 'لا إصابة' ||
+    lower === 'no trauma or chemicals' ||
+    lower === 'no, no injury' ||
+    lower === 'no injury'
   ) {
     return STABLE_QUICK_REPLIES['trauma:false'];
   }
@@ -308,10 +339,32 @@ export function resolveQuickReplyFromInput(
   if (
     clean === 'نعم تعرضت لضربة' ||
     clean === 'نعم تعرضت لضربة مباشرة' ||
+    clean === 'نعم تعرضت لضربة/إصابة' ||
     lower === 'yes, had trauma' ||
-    lower === 'yes had trauma'
+    lower === 'yes had trauma' ||
+    lower === 'yes, had trauma/injury'
   ) {
     return STABLE_QUICK_REPLIES['trauma:true'];
+  }
+
+  if (
+    clean === 'لا، لم تدخل مواد كيميائية' ||
+    clean === 'لا لم تدخل مواد كيميائية' ||
+    clean === 'لا كيماويات' ||
+    lower === 'no chemical exposure' ||
+    lower === 'no chemicals'
+  ) {
+    return STABLE_QUICK_REPLIES['chemical_exposure:false'];
+  }
+
+  if (
+    clean === 'نعم دخل رذاذ منظف/كيماويات' ||
+    clean === 'نعم دخل رذاذ منظف' ||
+    clean === 'نعم تعرضت لمواد كيميائية' ||
+    lower === 'yes, chemical splash' ||
+    lower === 'chemical splash'
+  ) {
+    return STABLE_QUICK_REPLIES['chemical_exposure:true'];
   }
 
   if (
@@ -735,7 +788,8 @@ export class TriageOrchestrator {
       ((updated.symptoms.vision_change === 'unknown' && !isFieldAnswered('vision_change')) ||
         (updated.symptoms.pain_level === 'unknown' && !isFieldAnswered('pain_level')) ||
         (updated.symptoms.redness === true && updated.symptoms.contact_lens === null && !isFieldAnswered('contact_lens')) ||
-        (updated.symptoms.trauma === null && !isFieldAnswered('trauma') && updated.symptoms.onset === 'unknown'));
+        (updated.symptoms.trauma === null && !isFieldAnswered('trauma') && updated.symptoms.onset === 'unknown') ||
+        (updated.symptoms.chemical_exposure === null && !isFieldAnswered('chemical_exposure') && (updated.symptoms.pain_level === 'moderate' || updated.symptoms.pain_level === 'severe')));
 
     if (needsFollowUp) {
       updated.status = 'FOLLOW_UP';
@@ -858,24 +912,24 @@ export class TriageOrchestrator {
           },
         ];
       } else if (updated.symptoms.trauma === null && !isFieldAnswered('trauma')) {
-        followUpQuestionAr = 'هل تعرضت لأي ضربة أو إصابة مباشرة بالعين، أو دخل فيها رذاذ منظف؟';
-        followUpQuestionEn = 'Did you experience any eye trauma, foreign object hit, or cleaning chemical splash?';
+        followUpQuestionAr = 'هل تعرضت لأي ضربة، خبطة، أو إصابة مباشرة بالعين؟';
+        followUpQuestionEn = 'Did you experience any direct blow, hit, or injury to the eye?';
         quickReplies = [
           {
-            id: 'qr-trauma-none',
-            labelAr: 'لا إصابة ولا كيماويات',
-            labelEn: 'No trauma or chemicals',
-            value: 'trauma:false',
-            field: 'trauma',
-            fieldValue: false,
-          },
-          {
             id: 'qr-trauma-yes',
-            labelAr: 'نعم تعرضت لضربة',
-            labelEn: 'Yes, had trauma',
+            labelAr: 'نعم تعرضت لضربة/إصابة',
+            labelEn: 'Yes, had trauma/injury',
             value: 'trauma:true',
             field: 'trauma',
             fieldValue: true,
+          },
+          {
+            id: 'qr-trauma-no',
+            labelAr: 'لا، لم أتعرض لإصابة',
+            labelEn: 'No, no injury',
+            value: 'trauma:false',
+            field: 'trauma',
+            fieldValue: false,
           },
           {
             id: 'qr-trauma-unknown',
@@ -883,6 +937,35 @@ export class TriageOrchestrator {
             labelEn: 'Not sure',
             value: 'trauma:null',
             field: 'trauma',
+            fieldValue: null,
+          },
+        ];
+      } else if (updated.symptoms.chemical_exposure === null && !isFieldAnswered('chemical_exposure')) {
+        followUpQuestionAr = 'هل دخل في عينك أي رذاذ منظف، صابون كيميائي، أو مادة كيميائية؟';
+        followUpQuestionEn = 'Did any cleaning product, chemical spray, or detergent splash into your eye?';
+        quickReplies = [
+          {
+            id: 'qr-chem-yes',
+            labelAr: 'نعم دخل رذاذ منظف/كيماويات',
+            labelEn: 'Yes, chemical splash',
+            value: 'chemical_exposure:true',
+            field: 'chemical_exposure',
+            fieldValue: true,
+          },
+          {
+            id: 'qr-chem-no',
+            labelAr: 'لا، لم تدخل مواد كيميائية',
+            labelEn: 'No chemical exposure',
+            value: 'chemical_exposure:false',
+            field: 'chemical_exposure',
+            fieldValue: false,
+          },
+          {
+            id: 'qr-chem-unknown',
+            labelAr: 'لست متأكدًا',
+            labelEn: 'Not sure',
+            value: 'chemical_exposure:null',
+            field: 'chemical_exposure',
             fieldValue: null,
           },
         ];
