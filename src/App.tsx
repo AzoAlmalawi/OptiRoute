@@ -13,7 +13,15 @@ import { DEMO_SCENARIOS } from './data/scenarios';
 import { ChevronDown, ChevronUp, Layers, Activity, Sparkles, HelpCircle, RotateCcw } from 'lucide-react';
 
 export default function App() {
-  const [language, setLanguage] = useState<Language>('ar');
+  const [language, setLanguage] = useState<Language>(() => {
+    if (typeof window !== 'undefined' && typeof localStorage !== 'undefined') {
+      const saved = localStorage.getItem('optiroute_language_preference');
+      if (saved === 'ar' || saved === 'en') {
+        return saved;
+      }
+    }
+    return 'en'; // Default to English on a first visit
+  });
   const [currentTab, setCurrentTab] = useState<'simulator' | 'dashboard' | 'safety'>('simulator');
   const [currentSession, setCurrentSession] = useState<TriageSession | null>(null);
   const [allSessions, setAllSessions] = useState<TriageSession[]>([]);
@@ -65,7 +73,7 @@ export default function App() {
       if (restored) {
         setCurrentSession(restored);
       } else {
-        const newSession = await orchestrator.createNewSession('ar', false);
+        const newSession = await orchestrator.createNewSession(language, false);
         updateActiveSession(newSession);
       }
     };
@@ -83,6 +91,9 @@ export default function App() {
   const handleToggleLanguage = () => {
     const nextLang = language === 'ar' ? 'en' : 'ar';
     setLanguage(nextLang);
+    if (typeof window !== 'undefined' && typeof localStorage !== 'undefined') {
+      localStorage.setItem('optiroute_language_preference', nextLang);
+    }
   };
 
   // Handle patient message

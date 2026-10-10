@@ -1,7 +1,19 @@
 <!doctype html>
-<html lang="ar" dir="rtl">
+<html lang="en" dir="ltr">
   <head>
     <meta charset="UTF-8" />
+    <script>
+      try {
+        var savedLang = localStorage.getItem('optiroute_language_preference');
+        if (savedLang === 'ar') {
+          document.documentElement.lang = 'ar';
+          document.documentElement.dir = 'rtl';
+        } else {
+          document.documentElement.lang = 'en';
+          document.documentElement.dir = 'ltr';
+        }
+      } catch (e) {}
+    </script>
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>OptiRoute — Smart Ophthalmic Triage</title>
     <meta name="description" content="WhatsApp-first, voice-first ophthalmic triage assistant and hospital clinical dashboard prototype for eye symptom urgency assessment and facility routing." />
