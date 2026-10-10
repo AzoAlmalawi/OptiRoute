@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Play, Pause, Mic, AlertCircle, RefreshCw } from 'lucide-react';
+import { Play, Pause, Mic, AlertCircle, RefreshCw, ChevronDown, ChevronUp } from 'lucide-react';
 import { Language } from '../../types/triage';
 import { getAssetUrl } from '../../utils/assets';
 
@@ -21,6 +21,7 @@ export const AudioPlayerSim: React.FC<AudioPlayerSimProps> = ({
   const [realDuration, setRealDuration] = useState<number>(durationSeconds);
   const [hasError, setHasError] = useState(false);
   const [showTranscriptFallback, setShowTranscriptFallback] = useState(false);
+  const [isTranscriptOpen, setIsTranscriptOpen] = useState(false);
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
   // If audioUrl is present, attach audio element lifecycle
@@ -192,18 +193,45 @@ export const AudioPlayerSim: React.FC<AudioPlayerSimProps> = ({
         </div>
       )}
 
-      {/* Labeled Transcript Bubble */}
+      {/* Collapsible Prepared Transcript under 'عرض النص' */}
       {transcript && (!hasError || showTranscriptFallback) && (
-        <div className="text-[12px] text-slate-700 bg-white/70 p-2 rounded-lg border border-slate-200/60 leading-relaxed">
-          <div className="flex items-center gap-1 text-[10px] text-slate-500 mb-0.5 font-medium">
+        <div className="pt-0.5">
+          <button
+            type="button"
+            onClick={() => setIsTranscriptOpen(!isTranscriptOpen)}
+            className="inline-flex items-center gap-1 text-[11px] font-medium text-emerald-800 hover:text-emerald-950 transition-colors py-0.5 px-1 rounded-md hover:bg-emerald-50"
+            aria-expanded={isTranscriptOpen}
+          >
             <Mic className="w-3 h-3 text-emerald-600 shrink-0" />
             <span>
-              {language === 'ar'
-                ? 'صوت اصطناعي تجريبي — نص مُعد مسبقًا'
-                : 'Synthetic demo audio — prepared transcript'}
+              {isTranscriptOpen
+                ? language === 'ar'
+                  ? 'إخفاء النص'
+                  : 'Hide transcript'
+                : language === 'ar'
+                ? 'عرض النص'
+                : 'Show transcript'}
             </span>
-          </div>
-          <p className="italic font-normal">"{transcript}"</p>
+            {isTranscriptOpen ? (
+              <ChevronUp className="w-3 h-3 text-emerald-700" />
+            ) : (
+              <ChevronDown className="w-3 h-3 text-emerald-700" />
+            )}
+          </button>
+
+          {isTranscriptOpen && (
+            <div className="mt-1 text-[12px] text-slate-700 bg-white/80 p-2.5 rounded-lg border border-slate-200/80 leading-relaxed shadow-2xs space-y-1 animate-fadeIn">
+              <div className="flex items-center gap-1 text-[10px] text-slate-500 font-medium">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 shrink-0" />
+                <span>
+                  {language === 'ar'
+                    ? 'تسجيل تجريبي مسبق الإعداد (محاكاة — لا يوجد تفريغ حي)'
+                    : 'Prepared demo recording (simulated — no live speech model)'}
+                </span>
+              </div>
+              <p className="italic font-normal text-slate-800">"{transcript}"</p>
+            </div>
+          )}
         </div>
       )}
     </div>

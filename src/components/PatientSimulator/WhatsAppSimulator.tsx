@@ -19,6 +19,8 @@ import {
   CheckCheck,
   Clock,
   Compass,
+  ChevronDown,
+  ChevronUp,
 } from 'lucide-react';
 
 interface WhatsAppSimulatorProps {
@@ -56,6 +58,7 @@ export const WhatsAppSimulator: React.FC<WhatsAppSimulatorProps> = ({
   const [isRecordingSim, setIsRecordingSim] = useState(false);
   const [recordingSeconds, setRecordingSeconds] = useState(0);
   const [showLocationModal, setShowLocationModal] = useState(false);
+  const [showTechnicalRules, setShowTechnicalRules] = useState<Record<string, boolean>>({});
   const chatBottomRef = useRef<HTMLDivElement>(null);
 
   // Auto-scroll chat to bottom on new messages
@@ -362,14 +365,45 @@ export const WhatsAppSimulator: React.FC<WhatsAppSimulatorProps> = ({
                     </div>
                   )}
 
-                  {/* Guidance text */}
-                  <p className="text-xs leading-relaxed text-slate-800">
-                    {language === 'ar' ? dec.guidanceTextAr : dec.guidanceTextEn}
-                  </p>
+                  {/* Grounded Clinical Explanation */}
+                  <div className="bg-white/80 p-2.5 rounded-xl border border-black/5 text-xs space-y-1">
+                    <span className="text-[10px] uppercase font-bold text-slate-500 block">
+                      {language === 'ar' ? 'سبب التقييم ومطابقة الأعراض:' : 'Assessment Reason:'}
+                    </span>
+                    <p className="text-xs leading-relaxed text-slate-800">
+                      {dec.ruleResult?.matchedFlags && dec.ruleResult.matchedFlags.length > 0 ? (
+                        <span>
+                          {language === 'ar'
+                            ? `تم رصد مؤشرات حرجة: ${dec.ruleResult.matchedFlags.map((f) => f.titleAr).join('، ')}.`
+                            : `Critical indicators detected: ${dec.ruleResult.matchedFlags.map((f) => f.titleEn).join(', ')}.`}
+                        </span>
+                      ) : (
+                        <span>
+                          {language === 'ar'
+                            ? dec.finalUrgency === 'URGENT'
+                              ? 'أعراض تتطلب فحصاً تخصصياً في اليوم نفسه لاستبعاد أي التهاب بالقرنية أو العين.'
+                              : 'أعراض سطحية مستقرة لا تشير إلى علامات خطورة حادة.'
+                            : dec.finalUrgency === 'URGENT'
+                            ? 'Symptoms warrant same-day specialist assessment to rule out corneal or anterior segment inflammation.'
+                            : 'Superficial, stable symptoms with no acute red-flag indicators.'}
+                        </span>
+                      )}
+                    </p>
+                  </div>
+
+                  {/* Next Step Guidance */}
+                  <div className="p-2.5 rounded-xl bg-white/60 border border-black/5 space-y-1">
+                    <span className="text-[10px] uppercase font-bold text-slate-500 block">
+                      {language === 'ar' ? 'الخطوة التالية الموصى بها:' : 'Recommended Next Step:'}
+                    </span>
+                    <p className="text-xs leading-relaxed text-slate-800 font-medium">
+                      {language === 'ar' ? dec.guidanceTextAr : dec.guidanceTextEn}
+                    </p>
+                  </div>
 
                   {/* Routed Facility Card or Absence Notice */}
                   {fac ? (
-                    <div className="bg-white/90 p-2.5 rounded-xl border border-slate-200 text-xs space-y-1.5">
+                    <div className="bg-white/95 p-2.5 rounded-xl border border-slate-200 text-xs space-y-1.5 shadow-2xs">
                       <div className="flex items-start justify-between gap-1">
                         <div>
                           <span className="text-[10px] text-teal-800 font-semibold block">
@@ -437,6 +471,49 @@ export const WhatsAppSimulator: React.FC<WhatsAppSimulatorProps> = ({
                       </p>
                     </div>
                   )}
+
+                  {/* Collapsible Technical Rules Section */}
+                  <div className="pt-1 border-t border-black/10">
+                    <button
+                      type="button"
+                      onClick={() =>
+                        setShowTechnicalRules((prev) => ({
+                          ...prev,
+                          [msg.id]: !prev[msg.id],
+                        }))
+                      }
+                      className="inline-flex items-center justify-between w-full text-[10px] text-slate-500 hover:text-slate-700 py-1"
+                    >
+                      <span>
+                        {language === 'ar'
+                          ? 'تفاصيل القواعد التقنية (للمطورين والتدقيق)'
+                          : 'Technical Rule Engine Details (Auditing)'}
+                      </span>
+                      {showTechnicalRules[msg.id] ? (
+                        <ChevronUp className="w-3 h-3" />
+                      ) : (
+                        <ChevronDown className="w-3 h-3" />
+                      )}
+                    </button>
+
+                    {showTechnicalRules[msg.id] && (
+                      <div className="mt-1 p-2 bg-black/5 rounded-lg text-[10px] text-slate-600 space-y-1 font-mono">
+                        <div>
+                          <strong>{language === 'ar' ? 'مصدر القرار:' : 'Decision Source:'}</strong>{' '}
+                          {dec.decisionSource}
+                        </div>
+                        <div>
+                          <strong>{language === 'ar' ? 'قواعد مطابقة:' : 'Matched Rules:'}</strong>{' '}
+                          {dec.ruleResult?.rationaleCodes?.join(', ') || 'NONE'}
+                        </div>
+                        <div className="text-slate-500 text-[9px] pt-0.5">
+                          {language === 'ar'
+                            ? 'نموذج أولي هندسي — لم يحصل على اعتماد سريري'
+                            : 'Engineering prototype — not clinically validated'}
+                        </div>
+                      </div>
+                    )}
+                  </div>
 
                   <div className="text-[10px] text-slate-400 text-right rtl:text-left flex items-center justify-end gap-1">
                     <span>

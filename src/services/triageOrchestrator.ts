@@ -140,6 +140,48 @@ export const STABLE_QUICK_REPLIES: Record<string, ResolvedQuickReplyAction> = {
     labelAr: 'نعم تعرضت لضربة',
     labelEn: 'Yes, had trauma',
   },
+
+  // Onset options
+  'onset:sudden': {
+    id: 'qr-onset-sudden',
+    field: 'onset',
+    fieldValue: 'sudden',
+    value: 'onset:sudden',
+    labelAr: 'فجأة',
+    labelEn: 'Suddenly',
+  },
+  'onset:gradual': {
+    id: 'qr-onset-gradual',
+    field: 'onset',
+    fieldValue: 'gradual',
+    value: 'onset:gradual',
+    labelAr: 'تدريجيًا',
+    labelEn: 'Gradually',
+  },
+  'onset:unknown': {
+    id: 'qr-onset-unknown',
+    field: 'onset',
+    fieldValue: 'unknown',
+    value: 'onset:unknown',
+    labelAr: 'لست متأكدًا',
+    labelEn: 'Not sure',
+  },
+  'vision_change:unknown': {
+    id: 'qr-vision-unknown',
+    field: 'vision_change',
+    fieldValue: 'unknown',
+    value: 'vision_change:unknown',
+    labelAr: 'لست متأكدًا',
+    labelEn: 'Not sure',
+  },
+  'pain_level:unknown': {
+    id: 'qr-pain-unknown',
+    field: 'pain_level',
+    fieldValue: 'unknown',
+    value: 'pain_level:unknown',
+    labelAr: 'لست متأكدًا',
+    labelEn: 'Not sure',
+  },
 };
 
 /**
@@ -256,6 +298,36 @@ export function resolveQuickReplyFromInput(
     return STABLE_QUICK_REPLIES['trauma:true'];
   }
 
+  if (
+    clean === 'فجأة' ||
+    clean === 'بدأت فجأة' ||
+    lower === 'suddenly' ||
+    lower === 'sudden'
+  ) {
+    return STABLE_QUICK_REPLIES['onset:sudden'];
+  }
+
+  if (
+    clean === 'تدريجيًا' ||
+    clean === 'تدريجيا' ||
+    clean === 'بدأت بالتدريج' ||
+    lower === 'gradually' ||
+    lower === 'gradual'
+  ) {
+    return STABLE_QUICK_REPLIES['onset:gradual'];
+  }
+
+  if (
+    clean === 'لست متأكدًا' ||
+    clean === 'لست متأكدا' ||
+    clean === 'مو متأكد' ||
+    clean === 'غير متأكد' ||
+    lower === 'not sure' ||
+    lower === "i'm not sure"
+  ) {
+    return STABLE_QUICK_REPLIES['onset:unknown'];
+  }
+
   return null;
 }
 
@@ -290,16 +362,12 @@ export class TriageOrchestrator {
     const now = new Date().toISOString();
 
     const welcomeTextAr =
-      'مرحباً بك في نظام الفرز البصري الذكي (\u202AOptiRoute\u202C).\n' +
-      'هذا النظام يساعدك في معرفة مدى إلحاح أعراض العين والجهة الطبية المناسبة للتوجه إليها.\n\n' +
-      '⚠️ تنبيه طبي هام: هذا نموذج تجريبي افتراضي وليس أداة تشخيصية أو علاجية. لا يقدم وصفات دوائية. في حال تدهور حالتك أو الطوارئ الحرجة اتصل فوراً بالهلال الأحمر (997) أو توجه لأقرب مستشفى.\n\n' +
-      'هل توافق على المتابعة ومشاركة وصف الأعراض افتراضياً؟';
+      'مرحبًا بك في OptiRoute. نساعدك على معرفة مدى استعجال أعراض العين والجهة المناسبة للتوجه إليها.\n\n' +
+      '⚠️ إشعار هام: هذه تجربة لحالات افتراضية، وليست تشخيصًا طبيًا ولا تقدم وصفات علاجية. في حالات الطوارئ القصوى، اتصل فورًا بالهلال الأحمر (997) أو توجه لأقرب مستشفى.';
 
     const welcomeTextEn =
-      'Welcome to OptiRoute — Smart Ophthalmic Triage.\n' +
-      'We help you determine the urgency of your eye symptoms and direct you to the appropriate medical facility.\n\n' +
-      '⚠️ Important Clinical Notice: This is a simulated prototype for demonstration purposes only. It does not provide diagnoses or prescriptions. If symptoms worsen, call national emergency services (997) or go to the nearest emergency room immediately.\n\n' +
-      'Do you consent to proceed with simulated symptom triage?';
+      'Welcome to OptiRoute. We help you understand the urgency of your eye symptoms and guide you to the appropriate facility.\n\n' +
+      '⚠️ Important Notice: This is a prototype for simulated cases only, not a medical diagnosis or treatment prescription. In emergencies, call 997 or go to the nearest hospital immediately.';
 
     const consentMessage: ChatMessage = {
       id: `msg-${Date.now()}-welcome`,
@@ -310,8 +378,8 @@ export class TriageOrchestrator {
       quickReplies: [
         {
           id: 'consent-yes',
-          labelAr: 'أوافق وأرغب بالمتابعة ✅',
-          labelEn: 'I Consent & Proceed ✅',
+          labelAr: 'أوافق وأبدأ التجربة ✅',
+          labelEn: 'I agree and start demo ✅',
           value: 'CONSENT_GRANTED',
         },
         {
@@ -402,8 +470,8 @@ export class TriageOrchestrator {
       type: 'text',
       text:
         updated.language === 'ar'
-          ? 'شكراً لك. صف مشكلة عينك بكلماتك أو أرسل رسالة صوتية (مثال: ألم، تغير في الرؤية، تعرض لمادة أو إصابة، وهل بدأت فجأة؟):'
-          : 'Thank you. Please describe your eye symptoms in your own words or send a voice note (e.g. pain, vision change, trauma, chemicals, sudden onset?):',
+          ? 'تفضل بوصف ما تشعر به في عينك، أو أرسل تسجيلاً صوتياً. يمكنك ذكر متى بدأت الأعراض وهل تأثر النظر أو تشعر بألم.'
+          : 'Please describe what you are feeling in your eye, or send a voice note. You can mention when symptoms began, if vision changed, or if you feel pain.',
       timestamp: now,
     };
     updated.messages.push(promptMessage);
@@ -558,6 +626,24 @@ export class TriageOrchestrator {
       extraction.extractedFields[resolvedAction.field] = `${String(resolvedAction.fieldValue)} (direct quick-reply: "${rawText}")`;
     }
 
+    // Also update answeredFields for any fields explicitly extracted or corrected from patient text
+    if (!updated.answeredFields) {
+      updated.answeredFields = {};
+    }
+    for (const key of Object.keys(extraction.extractedFields) as Array<keyof StructuredSymptoms>) {
+      const val = updated.symptoms[key];
+      // Only treat known, determinate values as answered (null and 'unknown' remain unknown and need follow-up)
+      if (val !== undefined && val !== null && val !== 'unknown') {
+        updated.answeredFields[key] = {
+          field: key,
+          value: val,
+          labelAr: String(val),
+          labelEn: String(val),
+          timestamp: now,
+        };
+      }
+    }
+
     updated.events.push({
       id: `evt-${Date.now()}-extract`,
       timestamp: new Date().toISOString(),
@@ -680,6 +766,14 @@ export class TriageOrchestrator {
             field: 'vision_change',
             fieldValue: 'loss',
           },
+          {
+            id: 'qr-vision-unknown',
+            labelAr: 'لست متأكدًا',
+            labelEn: 'Not sure',
+            value: 'vision_change:unknown',
+            field: 'vision_change',
+            fieldValue: 'unknown',
+          },
         ];
       } else if (updated.symptoms.pain_level === 'unknown' && !isFieldAnswered('pain_level')) {
         followUpQuestionAr = 'كيف تصف مستوى الألم في العين حالياً؟';
@@ -709,6 +803,14 @@ export class TriageOrchestrator {
             field: 'pain_level',
             fieldValue: 'severe',
           },
+          {
+            id: 'qr-pain-unknown',
+            labelAr: 'لست متأكدًا',
+            labelEn: 'Not sure',
+            value: 'pain_level:unknown',
+            field: 'pain_level',
+            fieldValue: 'unknown',
+          },
         ];
       } else if (updated.symptoms.redness === true && updated.symptoms.contact_lens === null && !isFieldAnswered('contact_lens')) {
         followUpQuestionAr = 'هل ترتدي عدسات لاصقة في عينك المتأثرة؟';
@@ -730,6 +832,14 @@ export class TriageOrchestrator {
             field: 'contact_lens',
             fieldValue: false,
           },
+          {
+            id: 'qr-lens-unknown',
+            labelAr: 'لست متأكدًا',
+            labelEn: 'Not sure',
+            value: 'contact_lens:null',
+            field: 'contact_lens',
+            fieldValue: null,
+          },
         ];
       } else if (updated.symptoms.trauma === null && !isFieldAnswered('trauma')) {
         followUpQuestionAr = 'هل تعرضت لأي ضربة أو إصابة مباشرة بالعين، أو دخل فيها رذاذ منظف؟';
@@ -750,6 +860,14 @@ export class TriageOrchestrator {
             value: 'trauma:true',
             field: 'trauma',
             fieldValue: true,
+          },
+          {
+            id: 'qr-trauma-unknown',
+            labelAr: 'لست متأكدًا',
+            labelEn: 'Not sure',
+            value: 'trauma:null',
+            field: 'trauma',
+            fieldValue: null,
           },
         ];
       }

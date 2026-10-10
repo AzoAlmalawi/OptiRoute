@@ -370,10 +370,15 @@ export class DemoSymptomExtractionProvider implements SymptomExtractionProvider 
       /without pain/i,
       /لا يوجد ألم/i,
       /لا يوجد الم/i,
+      /لا يوجد وجع/i,
       /ما فيه ألم/i,
       /مافيه الم/i,
+      /ما فيه وجع/i,
       /بدون ألم/i,
       /ولا ألم/i,
+      /لا ألم/i,
+      /لا الم/i,
+      /ما عندي ألم/i,
     ]);
 
     if (severePainEval.status === 'CONFIRMED_POSITIVE') {
