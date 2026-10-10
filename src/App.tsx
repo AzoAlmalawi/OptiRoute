@@ -9,7 +9,7 @@ import { RoadmapModal } from './components/HospitalDashboard/RoadmapModal';
 import { orchestrator } from './services/triageOrchestrator';
 import { SESSIONS_UPDATE_EVENT } from './services/providers';
 import { TriageSession, Language, DemoScenario, QuickReplyOption } from './types/triage';
-import { ChevronDown, ChevronUp, Layers, Activity } from 'lucide-react';
+import { ChevronDown, ChevronUp, Layers, Activity, Sparkles, HelpCircle, RotateCcw } from 'lucide-react';
 
 export default function App() {
   const [language, setLanguage] = useState<Language>('ar');
@@ -22,9 +22,9 @@ export default function App() {
   const [activeScenarioId, setActiveScenarioId] = useState<string | undefined>(undefined);
   const [queuedScenario, setQueuedScenario] = useState<DemoScenario | null>(null);
 
-  // Mobile collapsible sections state
-  const [mobileScenariosOpen, setMobileScenariosOpen] = useState(false);
-  const [mobileInspectionOpen, setMobileInspectionOpen] = useState(false);
+  // Collapsible panels state for demo cases and decision inspection drawer
+  const [scenariosOpen, setScenariosOpen] = useState(false);
+  const [decisionDrawerOpen, setDecisionDrawerOpen] = useState(false);
 
   // Sync HTML dir and lang attributes
   useEffect(() => {
@@ -259,50 +259,140 @@ export default function App() {
       <main className="flex-1 max-w-7xl w-full mx-auto p-3 sm:p-6 min-w-0 overflow-x-hidden">
         {currentTab === 'simulator' && (
           <div className="space-y-4 w-full max-w-full min-w-0">
-            {/* Desktop 3-Column Layout (Hidden on Mobile) */}
-            <div className="hidden lg:grid lg:grid-cols-12 gap-6 items-start w-full max-w-full min-w-0">
-              {/* Column 1: Synthetic Demo Scenario Selector */}
-              <div className="lg:col-span-3 min-w-0">
+            {/* Top Scenario Banner & Actions */}
+            <div className="bg-white rounded-xl border border-slate-200 shadow-2xs p-3 sm:p-4 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
+              <div className="flex items-center gap-2.5 flex-wrap min-w-0">
+                <span className="text-xs font-semibold text-slate-500 shrink-0">
+                  {language === 'ar' ? 'الحالة الحالية:' : 'Current Case:'}
+                </span>
+                {queuedTitle ? (
+                  <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-bold bg-teal-50 text-teal-900 border border-teal-200 truncate max-w-full">
+                    <span>📌</span>
+                    <span className="truncate">{queuedTitle}</span>
+                  </span>
+                ) : (
+                  <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-medium bg-slate-100 text-slate-700 border border-slate-200">
+                    <span>💬</span>
+                    <span>{language === 'ar' ? 'محادثة حرة افتراضية' : 'Custom simulated chat'}</span>
+                  </span>
+                )}
+              </div>
+
+              <div className="flex items-center gap-2 shrink-0 flex-wrap">
+                {/* Try a demo case collapsible toggle */}
+                <button
+                  type="button"
+                  onClick={() => setScenariosOpen(!scenariosOpen)}
+                  className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 border ${
+                    scenariosOpen
+                      ? 'bg-teal-700 text-white border-teal-800 shadow-2xs'
+                      : 'bg-teal-50 text-teal-800 border-teal-200 hover:bg-teal-100'
+                  }`}
+                  aria-expanded={scenariosOpen}
+                >
+                  <Sparkles className="w-3.5 h-3.5" />
+                  <span>{language === 'ar' ? 'جرّب حالة افتراضية' : 'Try a demo case'}</span>
+                  {scenariosOpen ? (
+                    <ChevronUp className="w-3.5 h-3.5" />
+                  ) : (
+                    <ChevronDown className="w-3.5 h-3.5" />
+                  )}
+                </button>
+
+                {/* How was this decision made collapsible toggle */}
+                <button
+                  type="button"
+                  onClick={() => setDecisionDrawerOpen(!decisionDrawerOpen)}
+                  className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all flex items-center gap-1.5 border ${
+                    decisionDrawerOpen
+                      ? 'bg-slate-800 text-white border-slate-900 shadow-2xs'
+                      : 'bg-slate-100 text-slate-700 border-slate-200 hover:bg-slate-200'
+                  }`}
+                  aria-expanded={decisionDrawerOpen}
+                >
+                  <HelpCircle className="w-3.5 h-3.5 text-amber-600" />
+                  <span>{language === 'ar' ? 'كيف اتُّخذ القرار؟' : 'How was this decision made?'}</span>
+                  {decisionDrawerOpen ? (
+                    <ChevronUp className="w-3.5 h-3.5" />
+                  ) : (
+                    <ChevronDown className="w-3.5 h-3.5" />
+                  )}
+                </button>
+
+                {/* Start a new demo button */}
+                <button
+                  type="button"
+                  onClick={handleResetSession}
+                  disabled={isProcessing}
+                  className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-white text-slate-700 border border-slate-300 hover:bg-slate-50 transition-colors flex items-center gap-1.5 shadow-2xs disabled:opacity-50"
+                  title={language === 'ar' ? 'بدء تجربة جديدة مع حفظ السابقة' : 'Start a new demo (preserves previous)'}
+                >
+                  <RotateCcw className="w-3.5 h-3.5 text-slate-500" />
+                  <span>{language === 'ar' ? 'بدء تجربة جديدة' : 'Start a new demo'}</span>
+                </button>
+              </div>
+            </div>
+
+            {/* Collapsible Panel 1: Try a demo case (6 Scenarios) */}
+            {scenariosOpen && (
+              <div className="bg-white rounded-2xl border-2 border-teal-200 shadow-md p-4 animate-fadeIn">
+                <div className="flex items-center justify-between pb-3 mb-3 border-b border-slate-100">
+                  <div className="flex items-center gap-2">
+                    <Sparkles className="w-4 h-4 text-teal-700" />
+                    <h2 className="text-xs sm:text-sm font-bold text-slate-900">
+                      {language === 'ar' ? 'اختر حالة افتراضية لتجربتها' : 'Select a demo scenario to try'}
+                    </h2>
+                  </div>
+                  <button
+                    onClick={() => setScenariosOpen(false)}
+                    className="text-xs text-slate-400 hover:text-slate-600 underline"
+                  >
+                    {language === 'ar' ? 'إغلاق' : 'Close'}
+                  </button>
+                </div>
                 <ScenarioSelector
                   language={language}
-                  onSelectScenario={handleSelectScenario}
+                  onSelectScenario={(sc) => {
+                    handleSelectScenario(sc);
+                    setScenariosOpen(false); // Collapses immediately after selection
+                  }}
                   activeScenarioId={activeScenarioId}
                   queuedScenarioId={queuedScenario?.id}
                   consentGiven={currentSession?.consentGiven}
                   disabled={isProcessing}
                 />
               </div>
+            )}
 
-              {/* Column 2: Phone-Sized WhatsApp Simulator */}
-              <div className="lg:col-span-5 flex justify-center min-w-0">
-                {currentSession && (
-                  <WhatsAppSimulator
-                    session={currentSession}
-                    language={language}
-                    onSendMessage={handleSendMessage}
-                    onConsent={handleConsent}
-                    onResetSession={handleResetSession}
-                    selectedCity={selectedCity}
-                    onSelectCity={setSelectedCity}
-                    isLoading={isProcessing}
-                    queuedScenarioTitle={queuedTitle}
-                  />
-                )}
-              </div>
-
-              {/* Column 3: Live Session Progress & Rule Enforcement Panel */}
-              <div className="lg:col-span-4 min-w-0">
+            {/* Collapsible Panel 2: How was this decision made? (Live progress & safety rules) */}
+            {decisionDrawerOpen && (
+              <div className="bg-white rounded-2xl border-2 border-slate-300 shadow-lg p-4 animate-fadeIn">
+                <div className="flex items-center justify-between pb-3 mb-3 border-b border-slate-100">
+                  <div className="flex items-center gap-2">
+                    <Activity className="w-4 h-4 text-teal-700" />
+                    <h2 className="text-xs sm:text-sm font-bold text-slate-900">
+                      {language === 'ar'
+                        ? 'كيف اتُّخذ القرار؟ (تفاصيل محرك القواعد ونموذج الفرز)'
+                        : 'How was this decision made? (Rule Engine & Triage details)'}
+                    </h2>
+                  </div>
+                  <button
+                    onClick={() => setDecisionDrawerOpen(false)}
+                    className="text-xs text-slate-400 hover:text-slate-600 underline"
+                  >
+                    {language === 'ar' ? 'إغلاق' : 'Close'}
+                  </button>
+                </div>
                 <SessionProgressPanel
                   session={currentSession}
                   language={language}
                 />
               </div>
-            </div>
+            )}
 
-            {/* Mobile Responsive Layout: Prioritizes WhatsApp Conversation, with Collapsible Supporting Panels */}
-            <div className="lg:hidden space-y-3 w-full max-w-full min-w-0">
-              {/* Prioritized Phone-Sized WhatsApp Simulator */}
-              <div className="w-full max-w-full min-w-0 flex justify-center">
+            {/* Main Chat Content Area: Centered, Focused, and Generous Width */}
+            <div className="w-full flex justify-center min-w-0">
+              <div className="w-full max-w-2xl min-w-0">
                 {currentSession && (
                   <WhatsAppSimulator
                     session={currentSession}
@@ -317,77 +407,13 @@ export default function App() {
                   />
                 )}
               </div>
+            </div>
 
-              {/* Mobile Collapsible 1: Preconfigured Demo Scenarios */}
-              <div className="bg-white rounded-xl border border-slate-200 shadow-2xs overflow-hidden w-full max-w-full min-w-0">
-                <button
-                  type="button"
-                  onClick={() => setMobileScenariosOpen(!mobileScenariosOpen)}
-                  className="w-full px-4 py-3 bg-slate-50 hover:bg-slate-100 flex items-center justify-between text-left rtl:text-right transition-colors"
-                >
-                  <div className="flex items-center gap-2">
-                    <Layers className="w-4 h-4 text-teal-700" />
-                    <span className="text-xs font-bold text-slate-900">
-                      {language === 'ar'
-                        ? '📋 السيناريوهات الافتراضية الجاهزة (6 حالات)'
-                        : '📋 Synthetic Demo Scenarios (6 Cases)'}
-                    </span>
-                  </div>
-                  {mobileScenariosOpen ? (
-                    <ChevronUp className="w-4 h-4 text-slate-500" />
-                  ) : (
-                    <ChevronDown className="w-4 h-4 text-slate-500" />
-                  )}
-                </button>
-
-                {mobileScenariosOpen && (
-                  <div className="p-3 border-t border-slate-200">
-                    <ScenarioSelector
-                      language={language}
-                      onSelectScenario={(sc) => {
-                        handleSelectScenario(sc);
-                        setMobileScenariosOpen(false);
-                      }}
-                      activeScenarioId={activeScenarioId}
-                      queuedScenarioId={queuedScenario?.id}
-                      consentGiven={currentSession?.consentGiven}
-                      disabled={isProcessing}
-                    />
-                  </div>
-                )}
-              </div>
-
-              {/* Mobile Collapsible 2: Technical Inspection & Live Engine State */}
-              <div className="bg-white rounded-xl border border-slate-200 shadow-2xs overflow-hidden w-full max-w-full min-w-0">
-                <button
-                  type="button"
-                  onClick={() => setMobileInspectionOpen(!mobileInspectionOpen)}
-                  className="w-full px-4 py-3 bg-slate-50 hover:bg-slate-100 flex items-center justify-between text-left rtl:text-right transition-colors"
-                >
-                  <div className="flex items-center gap-2">
-                    <Activity className="w-4 h-4 text-slate-700" />
-                    <span className="text-xs font-bold text-slate-900">
-                      {language === 'ar'
-                        ? '🔍 الفحص الفني المباشر ومحرك القواعد'
-                        : '🔍 Live Technical Inspection & Safety Engine'}
-                    </span>
-                  </div>
-                  {mobileInspectionOpen ? (
-                    <ChevronUp className="w-4 h-4 text-slate-500" />
-                  ) : (
-                    <ChevronDown className="w-4 h-4 text-slate-500" />
-                  )}
-                </button>
-
-                {mobileInspectionOpen && (
-                  <div className="p-3 border-t border-slate-200">
-                    <SessionProgressPanel
-                      session={currentSession}
-                      language={language}
-                    />
-                  </div>
-                )}
-              </div>
+            {/* Subtle mobile note for supporting panels (preserves clean mobile layout) */}
+            <div className="lg:hidden text-center text-[11px] text-slate-400">
+              {language === 'ar'
+                ? 'يمكنك تبديل السيناريوهات أو استعراض أسباب القرار من الأزرار بالأعلى.'
+                : 'You can change demo scenarios or inspect decision rationale using the top buttons.'}
             </div>
           </div>
         )}
