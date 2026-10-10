@@ -1,0 +1,116 @@
+[
+  {
+    "id": "01-vision-change",
+    "title_ar": "تغيّر مفاجئ في الرؤية",
+    "synthetic": true,
+    "languages": {
+      "ar": {
+        "audio": "ar/01-vision-change.mp3",
+        "transcript": "يا دكتور، من ساعتين تقريبًا، فجأة قمت أشوف لمعات بعيني اليمين. وعقبها، كِنّ ستارة سودا نزلت على عيني. الحين ما عاد أشوف فيها زين.",
+        "voice": "ar-SA-HamedNeural",
+        "duration_seconds": 14.86
+      },
+      "en": {
+        "audio": "en/01-vision-change.mp3",
+        "transcript": "Doctor, about two hours ago, I suddenly started seeing flashes in my right eye. Then it was like a dark curtain came down over it, and now I cannot see properly out of that eye.",
+        "voice": "en-US-GuyNeural",
+        "duration_seconds": 11.26
+      }
+    }
+  },
+  {
+    "id": "02-chemical-exposure",
+    "title_ar": "التعرض لمادة كيميائية",
+    "synthetic": true,
+    "languages": {
+      "ar": {
+        "audio": "ar/02-chemical-exposure.mp3",
+        "transcript": "كنت أنظّف الحمّام، وطشّ بعيني اليسار شوي من المنظّف، اللي فيه كلور. يا دكتور، من وقتها وهي تحرقني مرّة، واحمرّت، وقامت تدمع واجد. صار لهالحكي عشر دقايق تقريبًا.",
+        "voice": "ar-SA-ZariyahNeural",
+        "duration_seconds": 17.98
+      },
+      "en": {
+        "audio": "en/02-chemical-exposure.mp3",
+        "transcript": "I was cleaning the bathroom, and some cleaner containing bleach splashed into my left eye. It has been burning really badly ever since. It is red and watering a lot. This happened about ten minutes ago.",
+        "voice": "en-US-JennyNeural",
+        "duration_seconds": 14.64
+      }
+    }
+  },
+  {
+    "id": "03-eye-injury",
+    "title_ar": "إصابة العين",
+    "synthetic": true,
+    "languages": {
+      "ar": {
+        "audio": "ar/03-eye-injury.mp3",
+        "transcript": "كنت أشتغل بالورشة قبل نص ساعة، وطارت قطعة حديد صغيرة ودخلت بعيني اليسار. الحين عيني توجعني حيل، وأشوف مغبّش، وفيها شوي دم.",
+        "voice": "ar-SA-HamedNeural",
+        "duration_seconds": 13.49
+      },
+      "en": {
+        "audio": "en/03-eye-injury.mp3",
+        "transcript": "I was working in the workshop about half an hour ago when a small piece of metal flew into my left eye. It hurts a lot, my vision is blurry, and there is a little blood.",
+        "voice": "en-US-GuyNeural",
+        "duration_seconds": 10.58
+      }
+    }
+  },
+  {
+    "id": "04-contact-lens",
+    "title_ar": "احمرار وألم مع العدسات",
+    "synthetic": true,
+    "languages": {
+      "ar": {
+        "audio": "ar/04-contact-lens.mp3",
+        "transcript": "أنا ألبس عدسات، ومن أمس عيني اليمين محمرّة وتوجعني شوي. وكل شوي يزيد الوجع، والنور بعد يضايقني. الوجع مو قوي مرّة. نظري ما راح فجأة، وما طشّ بعيني منظّف، ولا انضربت عيني.",
+        "voice": "ar-SA-ZariyahNeural",
+        "duration_seconds": 19.99
+      },
+      "en": {
+        "audio": "en/04-contact-lens.mp3",
+        "transcript": "I wear contact lenses. Since yesterday, my right eye has been red and aching, and the pain is getting worse. It is not severe, but light bothers me. I have not suddenly lost my vision. No cleaner got into my eye, and I have not injured it.",
+        "voice": "en-US-JennyNeural",
+        "duration_seconds": 18.26
+      }
+    }
+  },
+  {
+    "id": "05-dryness-itching",
+    "title_ar": "جفاف وحكة",
+    "synthetic": true,
+    "languages": {
+      "ar": {
+        "audio": "ar/05-dryness-itching.mp3",
+        "transcript": "يا دكتور، لي أسبوعين وعيوني ناشفة وتحكّني شوي، كِنّ فيها رمل. وإذا طولت عالكمبيوتر تزيد. بس أشوف زين، ونظري ما تغيّر، وما فيه وجع قوي. ما انضربت عيوني، ولا طشّ فيها منظّف، وأنا ما ألبس عدسات.",
+        "voice": "ar-SA-HamedNeural",
+        "duration_seconds": 22.2
+      },
+      "en": {
+        "audio": "en/05-dryness-itching.mp3",
+        "transcript": "For about two weeks, both my eyes have felt dry and a little itchy, almost like there is sand in them. It gets worse when I spend a long time on the computer. I can see normally, and my vision has not changed. I do not have severe pain, an eye injury, or any exposure to cleaning chemicals. I do not wear contact lenses.",
+        "voice": "en-US-GuyNeural",
+        "duration_seconds": 22.2
+      }
+    }
+  },
+  {
+    "id": "06-unclear-symptoms",
+    "title_ar": "وصف مبهم",
+    "synthetic": true,
+    "languages": {
+      "ar": {
+        "audio": "ar/06-unclear-symptoms.mp3",
+        "transcript": "والله مدري وش فيها عيني اليوم. أحسّها مو على طبيعتها، وفيه شي مضايقني. بس مو عارفة وش أقول لك بالضبط. يعني، إحساس غريب، مو مرتاحة لها.",
+        "voice": "ar-SA-ZariyahNeural",
+        "duration_seconds": 16.34
+      },
+      "en": {
+        "audio": "en/06-unclear-symptoms.mp3",
+        "transcript": "I am not sure. My eye just does not feel like it usually does today. Something is bothering me, but I do not really know how to describe it. It just feels strange and uncomfortable.",
+        "voice": "en-US-JennyNeural",
+        "duration_seconds": 13.1
+      }
+    }
+  }
+]

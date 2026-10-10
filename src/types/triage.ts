@@ -132,6 +132,8 @@ export interface ChatMessage {
   text?: string;
   transcript?: string;
   audioDurationSeconds?: number;
+  audioUrl?: string;
+  audioLanguage?: Language;
   timestamp: string;
   quickReplies?: QuickReplyOption[];
   selectedQuickReplyId?: string;
@@ -220,6 +222,10 @@ export interface DemoScenario {
   initialMessageEn: string;
   isVoiceSample?: boolean;
   voiceDurationSeconds?: number;
+  audioUrlAr?: string;
+  audioUrlEn?: string;
+  transcriptAr?: string;
+  transcriptEn?: string;
   locationCity?: string;
   expectedUrgency: UrgencyLevel;
   expectedRuleId?: string;

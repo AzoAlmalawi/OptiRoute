@@ -469,7 +469,8 @@ export const WhatsAppSimulator: React.FC<WhatsAppSimulatorProps> = ({
                   <AudioPlayerSim
                     durationSeconds={msg.audioDurationSeconds}
                     transcript={msg.transcript}
-                    language={language}
+                    language={msg.audioLanguage || session.language || language}
+                    audioUrl={msg.audioUrl}
                   />
                 ) : (
                   <p className="whitespace-pre-line leading-relaxed text-[12px]">{msg.text}</p>

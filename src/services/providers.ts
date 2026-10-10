@@ -239,6 +239,11 @@ export class DemoSymptomExtractionProvider implements SymptomExtractionProvider 
       /(?:و)?الرؤية طبيعية/i,
       /(?:و)?الرؤية سليمة/i,
       /(?:و)?النظر سليم/i,
+      /أشوف زين/i,
+      /اشوف زين/i,
+      /أشوف كويس/i,
+      /اشوف كويس/i,
+      /(?:و)?نظري ما (تغير|تغيّر)/i,
       /(?:لا يوجد|ما فيه|مافيه|ولا|مافي).*(?:تغير|تغيير).*(?:بالنظر|في النظر|بالرؤية|في الرؤية)/i,
     ]);
 
@@ -258,8 +263,56 @@ export class DemoSymptomExtractionProvider implements SymptomExtractionProvider 
       s.vision_change = 'none';
       extractedFields.vision_change = `none (affirmed normal vision: "${normalVisionEval.evidenceSnippet}")`;
     } else if (lossEval.status === 'CONFIRMED_NEGATIVE') {
-      s.vision_change = 'none';
-      extractedFields.vision_change = `none (negated vision loss: "${lossEval.evidenceSnippet}")`;
+      // Check for corneal / anterior segment risk (contact lenses, red eye, photophobia).
+      // In patients with red eye / contact lenses / light sensitivity, negating sudden blindness
+      // does not rule out corneal blurriness or decreased acuity, so vision_change remains 'unknown'
+      // to prompt necessary clinical follow-up.
+      // In patients without anterior segment risk (e.g. mild itching / routine non-urgent cases),
+      // negating vision loss safely establishes vision_change = 'none'.
+      const contactsRisk = evaluateClinicalConcept(lower, [
+        /contact lens/i,
+        /\bcontacts\b/i,
+        /عدسات لاصقة/i,
+        /عدسات/i,
+      ]);
+      const rednessRisk = evaluateClinicalConcept(lower, [
+        /red eye/i,
+        /\bredness\b/i,
+        /\b(very )?red\b/i,
+        /حمراء/i,
+        /احمرار/i,
+        /محمرّة/i,
+        /محمرة/i,
+      ]);
+      const photoRisk = evaluateClinicalConcept(lower, [
+        /light sensitivity/i,
+        /photophobia/i,
+        /light bothers/i,
+        /حساسية من النور/i,
+        /ألم مع النور/i,
+        /تضايقني الإضاءة/i,
+        /النور.*يضايقني/i,
+        /الضوء/i,
+      ]);
+
+      const hasCornealRisk =
+        contactsRisk.status === 'CONFIRMED_POSITIVE' ||
+        rednessRisk.status === 'CONFIRMED_POSITIVE' ||
+        photoRisk.status === 'CONFIRMED_POSITIVE' ||
+        Boolean(currentSymptoms && (currentSymptoms.contact_lens === true || currentSymptoms.redness === true || currentSymptoms.light_sensitivity === true));
+
+      if (hasCornealRisk) {
+        if (currentSymptoms && currentSymptoms.vision_change !== 'unknown') {
+          s.vision_change = currentSymptoms.vision_change;
+          extractedFields.vision_change = `${currentSymptoms.vision_change} (preserved prior established finding)`;
+        } else {
+          s.vision_change = 'unknown';
+          extractedFields.vision_change = `unknown (negated acute loss with corneal/red-eye risk: "${lossEval.evidenceSnippet}")`;
+        }
+      } else {
+        s.vision_change = 'none';
+        extractedFields.vision_change = `none (negated vision loss without anterior segment risk: "${lossEval.evidenceSnippet}")`;
+      }
     } else if (currentSymptoms && currentSymptoms.vision_change !== 'unknown') {
       s.vision_change = currentSymptoms.vision_change;
       extractedFields.vision_change = `${currentSymptoms.vision_change} (preserved prior established finding)`;
@@ -279,8 +332,12 @@ export class DemoSymptomExtractionProvider implements SymptomExtractionProvider 
 
     const moderatePainEval = evaluateClinicalConcept(lower, [
       /moderate (eye )?pain/i,
+      /\baching\b/i,
+      /\bache\b/i,
       /\bhurts\b/i,
       /\bhurt\b/i,
+      /\bpain is getting worse\b/i,
+      /\bpain\b/i,
       /(?:^|[\s،,.;:!?])(ألم|الم)(?:[\s،,.;:!?]).*متوسط/i,
       /ألم متوسط/i,
       /الم متوسط/i,
@@ -295,12 +352,15 @@ export class DemoSymptomExtractionProvider implements SymptomExtractionProvider 
       /\bitch\b/i,
       /\bscratchiness\b/i,
       /\bgrittiness\b/i,
-      /(?:^|[\s،,.;:!?])(ألم|الم)(?:[\s،,.;:!?]).*خفيف/i,
+      /(?:^|[\s،,.;:!?])(ألم|الم|وجع)(?:[\s،,.;:!?]).*خفيف/i,
       /ألم خفيف/i,
       /الم خفيف/i,
+      /وجع خفيف/i,
       /حكة/i,
+      /تحك(ني|ّني)/i,
       /حكة خفيفة/i,
       /إحساس مثل الرمل/i,
+      /رمل/i,
     ]);
 
     const noPainEval = evaluateClinicalConcept(lower, [
@@ -325,9 +385,18 @@ export class DemoSymptomExtractionProvider implements SymptomExtractionProvider 
     } else if (mildPainEval.status === 'CONFIRMED_POSITIVE') {
       s.pain_level = 'mild';
       extractedFields.pain_level = `mild (positive evidence: "${mildPainEval.evidenceSnippet}")`;
-    } else if (noPainEval.status === 'CONFIRMED_POSITIVE' || severePainEval.status === 'CONFIRMED_NEGATIVE') {
+    } else if (noPainEval.status === 'CONFIRMED_POSITIVE') {
       s.pain_level = 'none';
       extractedFields.pain_level = 'none (negated or absent pain)';
+    } else if (severePainEval.status === 'CONFIRMED_NEGATIVE') {
+      // Negating severe pain does not mean no pain exists if mild/moderate or unknown
+      if (currentSymptoms && currentSymptoms.pain_level !== 'unknown') {
+        s.pain_level = currentSymptoms.pain_level;
+        extractedFields.pain_level = `${currentSymptoms.pain_level} (preserved prior established finding)`;
+      } else {
+        s.pain_level = 'unknown';
+        extractedFields.pain_level = 'unknown (negated severe pain, but general pain status unknown)';
+      }
     } else if (currentSymptoms && currentSymptoms.pain_level !== 'unknown') {
       s.pain_level = currentSymptoms.pain_level;
       extractedFields.pain_level = `${currentSymptoms.pain_level} (preserved prior established finding)`;

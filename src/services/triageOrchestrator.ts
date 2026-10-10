@@ -425,6 +425,8 @@ export class TriageOrchestrator {
       userCoords?: { lat: number; lng: number };
       quickReply?: QuickReplyOption;
       parentMessageId?: string;
+      audioUrl?: string;
+      audioLanguage?: Language;
     }
   ): Promise<TriageSession> {
     const updated: TriageSession = {
@@ -500,6 +502,8 @@ export class TriageOrchestrator {
       text: rawText,
       transcript: rawText,
       audioDurationSeconds: params.isVoice ? params.voiceDuration || 10 : undefined,
+      audioUrl: params.isVoice ? params.audioUrl : undefined,
+      audioLanguage: params.isVoice ? (params.audioLanguage || updated.language) : undefined,
       timestamp: now,
     };
     updated.messages.push(patientMsg);

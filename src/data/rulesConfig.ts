@@ -153,7 +153,8 @@ export const RAW_TEXT_RED_FLAG_PATTERNS: {
     ruleId: 'RF-03',
     arPatterns: [
       /شظية (حديد|معدن|زجاج)/i,
-      /طارت في عيني/i,
+      /قطعة حديد/i,
+      /طارت (في|بعيني)/i,
       /ضربة (قوية|مباشرة) (في|على) عيني/i,
       /جسم غريب دخل/i,
       /نزيف في بؤبؤ العين/i,
@@ -162,7 +163,7 @@ export const RAW_TEXT_RED_FLAG_PATTERNS: {
     ],
     enPatterns: [
       /\b(eye trauma|eye injury)\b/i,
-      /metal (fragment|shard|particle) in (my )?eye/i,
+      /(piece of metal|metal (fragment|shard|particle)).*(flew into|in|entered).*(eye)/i,
       /foreign object in (my )?eye/i,
       /hit directly in the eye/i,
       /punched in the eye/i,
@@ -183,13 +184,15 @@ export const RAW_TEXT_RED_FLAG_PATTERNS: {
   {
     ruleId: 'RF-05',
     arPatterns: [
-      /ستارة (سوداء|سودة|معتمة|مظلمة)/i,
+      /ستارة (سوداء|سودة|سودا|معتمة|مظلمة)/i,
       /ظل أسود نازل/i,
       /ومضات (نور|ضوئية) مع (ستارة|ظل)/i,
+      /(لمعات|ومضات).*ستارة/i,
       /برق في العين مع سواد/i,
     ],
     enPatterns: [
-      /curtain (coming )?over (my )?vision/i,
+      /curtain (came down|coming )?over (it|(my )?vision|(my )?eye)/i,
+      /dark curtain/i,
       /black (shadow|veil) in eye/i,
       /flashes (of light )?with shadow/i,
       /dark shadow covering vision/i,

@@ -38,12 +38,35 @@ export default function App() {
     setAllSessions(list);
   }, []);
 
-  // Initialize fresh session ONCE on startup
+  // Helper to sync active session to state and localStorage
+  const updateActiveSession = (session: TriageSession | null) => {
+    setCurrentSession(session);
+    if (typeof window !== 'undefined' && typeof localStorage !== 'undefined') {
+      if (session) {
+        localStorage.setItem('optiroute_active_session_id', session.id);
+      } else {
+        localStorage.removeItem('optiroute_active_session_id');
+      }
+    }
+  };
+
+  // Initialize fresh or restored session ONCE on startup
   useEffect(() => {
     const init = async () => {
       await loadSessions();
-      const newSession = await orchestrator.createNewSession('ar', false);
-      setCurrentSession(newSession);
+      let restored: TriageSession | null = null;
+      if (typeof window !== 'undefined' && typeof localStorage !== 'undefined') {
+        const activeId = localStorage.getItem('optiroute_active_session_id');
+        if (activeId) {
+          restored = await orchestrator.repository.getSession(activeId);
+        }
+      }
+      if (restored) {
+        setCurrentSession(restored);
+      } else {
+        const newSession = await orchestrator.createNewSession('ar', false);
+        updateActiveSession(newSession);
+      }
     };
     init();
 
@@ -69,7 +92,9 @@ export default function App() {
     sessionOverride?: TriageSession,
     cityOverride?: string,
     quickReply?: QuickReplyOption,
-    parentMessageId?: string
+    parentMessageId?: string,
+    audioUrl?: string,
+    audioLanguage?: Language
   ) => {
     const sessionToUse = sessionOverride || currentSession;
     if (!sessionToUse) return;
@@ -82,8 +107,10 @@ export default function App() {
         userCity: cityOverride || selectedCity,
         quickReply,
         parentMessageId,
+        audioUrl,
+        audioLanguage,
       });
-      setCurrentSession(updated);
+      updateActiveSession(updated);
       await loadSessions();
     } finally {
       setIsProcessing(false);
@@ -96,7 +123,7 @@ export default function App() {
     setIsProcessing(true);
     try {
       const updated = await orchestrator.handleConsent(currentSession, granted);
-      setCurrentSession(updated);
+      updateActiveSession(updated);
 
       if (!granted) {
         setQueuedScenario(null);
@@ -112,12 +139,19 @@ export default function App() {
         }
         const msgText =
           language === 'ar' ? scenarioToRun.initialMessageAr : scenarioToRun.initialMessageEn;
+        const audioUrl =
+          language === 'ar' ? scenarioToRun.audioUrlAr : scenarioToRun.audioUrlEn;
+
         await handleSendMessage(
           msgText,
           scenarioToRun.isVoiceSample,
           scenarioToRun.voiceDurationSeconds,
           updated,
-          cityToUse
+          cityToUse,
+          undefined,
+          undefined,
+          audioUrl,
+          language
         );
       }
       await loadSessions();
@@ -139,7 +173,7 @@ export default function App() {
       // 1, 2, 3: Create a fresh session with a new ID and reset state
       // (saving the fresh session preserves all existing sessions in the repository)
       const freshSession = await orchestrator.createNewSession(language, true);
-      setCurrentSession(freshSession);
+      updateActiveSession(freshSession);
 
       // 4: Queue the selected scenario and require explicit consent before processing it
       setActiveScenarioId(scenario.id);
@@ -162,7 +196,7 @@ export default function App() {
     setIsProcessing(true);
     try {
       const fresh = await orchestrator.createNewSession(language, false);
-      setCurrentSession(fresh);
+      updateActiveSession(fresh);
       await loadSessions();
     } finally {
       setIsProcessing(false);
@@ -178,7 +212,7 @@ export default function App() {
       await orchestrator.repository.resetToSeed(freshSeeds);
       await loadSessions();
       const fresh = await orchestrator.createNewSession(language, false);
-      setCurrentSession(fresh);
+      updateActiveSession(fresh);
       setActiveScenarioId(undefined);
       setQueuedScenario(null);
     } finally {
@@ -200,7 +234,7 @@ export default function App() {
     await loadSessions();
     if (currentSession && currentSession.id === sessionId) {
       const updated = await orchestrator.repository.getSession(sessionId);
-      if (updated) setCurrentSession(updated);
+      if (updated) updateActiveSession(updated);
     }
   };
 
