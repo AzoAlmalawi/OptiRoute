@@ -4,6 +4,7 @@ import {
   Language,
   ChatMessage,
   QuickReplyOption,
+  StructuredSymptoms,
 } from '../../types/triage';
 import { DEMO_CITIES } from '../../data/facilities';
 import { AudioPlayerSim } from './AudioPlayerSim';
@@ -21,6 +22,10 @@ import {
   Compass,
   ChevronDown,
   ChevronUp,
+  Edit3,
+  HelpCircle,
+  Check,
+  X,
 } from 'lucide-react';
 
 interface WhatsAppSimulatorProps {
@@ -41,6 +46,12 @@ interface WhatsAppSimulatorProps {
   onSelectCity: (city: string) => void;
   isLoading?: boolean;
   queuedScenarioTitle?: string;
+  onCorrectField?: (
+    field: keyof StructuredSymptoms,
+    value: unknown,
+    labelAr: string,
+    labelEn: string
+  ) => void;
 }
 
 export const WhatsAppSimulator: React.FC<WhatsAppSimulatorProps> = ({
@@ -53,12 +64,15 @@ export const WhatsAppSimulator: React.FC<WhatsAppSimulatorProps> = ({
   onSelectCity,
   isLoading = false,
   queuedScenarioTitle,
+  onCorrectField,
 }) => {
   const [inputText, setInputText] = useState('');
   const [isRecordingSim, setIsRecordingSim] = useState(false);
   const [recordingSeconds, setRecordingSeconds] = useState(0);
   const [showLocationModal, setShowLocationModal] = useState(false);
   const [showTechnicalRules, setShowTechnicalRules] = useState<Record<string, boolean>>({});
+  const [summaryExpanded, setSummaryExpanded] = useState<Record<string, boolean>>({});
+  const [correctingField, setCorrectingField] = useState<keyof StructuredSymptoms | null>(null);
   const chatBottomRef = useRef<HTMLDivElement>(null);
 
   // Auto-scroll chat to bottom on new messages
@@ -318,6 +332,93 @@ export const WhatsAppSimulator: React.FC<WhatsAppSimulatorProps> = ({
             const isUrgent = dec.finalUrgency === 'URGENT';
             const fac = msg.facilityPayload;
 
+            const isSummaryOpen = summaryExpanded[msg.id] ?? true; // Open by default for immediate clarity
+            const sym = session.symptoms;
+
+            const formatFieldTriState = (val: boolean | null | undefined, labelAr: string, labelEn: string) => {
+              if (val === true) {
+                return (
+                  <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-emerald-800 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">
+                    <Check className="w-3 h-3 text-emerald-600" />
+                    <span>{language === 'ar' ? labelAr : labelEn}:</span>
+                    <span>{language === 'ar' ? '(+) نعم' : '(+) Yes'}</span>
+                  </span>
+                );
+              }
+              if (val === false) {
+                return (
+                  <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-slate-700 bg-slate-100 px-2 py-0.5 rounded border border-slate-200">
+                    <X className="w-3 h-3 text-slate-500" />
+                    <span>{language === 'ar' ? labelAr : labelEn}:</span>
+                    <span>{language === 'ar' ? '(-) لا' : '(-) No'}</span>
+                  </span>
+                );
+              }
+              return (
+                <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-amber-800 bg-amber-50 px-2 py-0.5 rounded border border-amber-200">
+                  <HelpCircle className="w-3 h-3 text-amber-500" />
+                  <span>{language === 'ar' ? labelAr : labelEn}:</span>
+                  <span>{language === 'ar' ? '(?) غير محدد' : '(?) Unknown'}</span>
+                </span>
+              );
+            };
+
+            const formatVisionText = (val: string) => {
+              switch (val) {
+                case 'none':
+                  return language === 'ar' ? 'طبيعي' : 'Normal';
+                case 'blurred':
+                  return language === 'ar' ? 'تشوش / ضبابية' : 'Blurred';
+                case 'loss':
+                  return language === 'ar' ? 'فقدان / ضعف شديد' : 'Loss / Severely reduced';
+                case 'double':
+                  return language === 'ar' ? 'ازدواجية الرؤية' : 'Double vision';
+                case 'flashes_floaters':
+                  return language === 'ar' ? 'ومضات / شوائب' : 'Flashes / Floaters';
+                default:
+                  return language === 'ar' ? '(?) غير محدد' : '(?) Unknown';
+              }
+            };
+
+            const formatPainText = (val: string) => {
+              switch (val) {
+                case 'none':
+                  return language === 'ar' ? 'لا يوجد ألم' : 'No pain';
+                case 'mild':
+                  return language === 'ar' ? 'ألم خفيف أو حكة' : 'Mild / Itch';
+                case 'moderate':
+                  return language === 'ar' ? 'ألم متوسط' : 'Moderate';
+                case 'severe':
+                  return language === 'ar' ? 'ألم شديد جداً' : 'Severe / Unbearable';
+                default:
+                  return language === 'ar' ? '(?) غير محدد' : '(?) Unknown';
+              }
+            };
+
+            const formatEyeText = (val: string) => {
+              switch (val) {
+                case 'left':
+                  return language === 'ar' ? 'اليسرى' : 'Left';
+                case 'right':
+                  return language === 'ar' ? 'اليمنى' : 'Right';
+                case 'both':
+                  return language === 'ar' ? 'كلتا العينين' : 'Both eyes';
+                default:
+                  return language === 'ar' ? '(?) غير محدد' : '(?) Unknown';
+              }
+            };
+
+            const formatOnsetText = (val: string) => {
+              switch (val) {
+                case 'sudden':
+                  return language === 'ar' ? 'مفاجئ (فجأة)' : 'Sudden';
+                case 'gradual':
+                  return language === 'ar' ? 'تدريجي' : 'Gradual';
+                default:
+                  return language === 'ar' ? '(?) غير محدد' : '(?) Unknown';
+              }
+            };
+
             return (
               <div key={msg.id} className="flex justify-start my-2 max-w-[92%]">
                 <div
@@ -329,6 +430,418 @@ export const WhatsAppSimulator: React.FC<WhatsAppSimulatorProps> = ({
                       : 'bg-teal-50/95 border-teal-300 text-teal-950'
                   }`}
                 >
+                  {/* Collapsible Section: ملخص إجاباتك / Your answers */}
+                  <div className="bg-white/90 rounded-xl border border-slate-200 overflow-hidden text-slate-800">
+                    <button
+                      type="button"
+                      onClick={() =>
+                        setSummaryExpanded((prev) => ({
+                          ...prev,
+                          [msg.id]: !isSummaryOpen,
+                        }))
+                      }
+                      className="w-full flex items-center justify-between p-2.5 bg-slate-50 hover:bg-slate-100 transition-colors text-left rtl:text-right border-b border-slate-200"
+                    >
+                      <div className="flex items-center gap-1.5 font-bold text-xs text-slate-800">
+                        <CheckCheck className="w-4 h-4 text-teal-700" />
+                        <span>{language === 'ar' ? 'ملخص إجاباتك والأعراض' : 'Your Answers & Symptoms'}</span>
+                      </div>
+                      <div className="flex items-center gap-1 text-[11px] text-slate-500 font-medium">
+                        <span>{isSummaryOpen ? (language === 'ar' ? 'إخفاء' : 'Collapse') : (language === 'ar' ? 'عرض' : 'Expand')}</span>
+                        {isSummaryOpen ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
+                      </div>
+                    </button>
+
+                    {isSummaryOpen && (
+                      <div className="p-3 space-y-2.5 text-xs">
+                        {/* Tri-state summary badges */}
+                        <div className="flex flex-wrap gap-1.5">
+                          {formatFieldTriState(sym.chemical_exposure, 'مادة كيميائية', 'Chemicals')}
+                          {formatFieldTriState(sym.trauma, 'إصابة/جسم غريب', 'Trauma/Injury')}
+                          {formatFieldTriState(sym.contact_lens, 'عدسات لاصقة', 'Contact Lens')}
+                          {formatFieldTriState(sym.light_sensitivity, 'حساسية ضوء', 'Photophobia')}
+                          {formatFieldTriState(sym.redness, 'احمرار', 'Redness')}
+                          {formatFieldTriState(sym.discharge, 'إفرازات', 'Discharge')}
+                        </div>
+
+                        {/* Categorical details */}
+                        <div className="grid grid-cols-2 gap-1.5 pt-1 border-t border-slate-100 text-[11px]">
+                          <div className="p-1.5 bg-slate-50 rounded border border-slate-100">
+                            <span className="text-[10px] text-slate-500 block">{language === 'ar' ? 'تغير الرؤية' : 'Vision Change'}</span>
+                            <span className="font-semibold text-slate-800">{formatVisionText(sym.vision_change)}</span>
+                          </div>
+                          <div className="p-1.5 bg-slate-50 rounded border border-slate-100">
+                            <span className="text-[10px] text-slate-500 block">{language === 'ar' ? 'مستوى الألم' : 'Pain Level'}</span>
+                            <span className="font-semibold text-slate-800">{formatPainText(sym.pain_level)}</span>
+                          </div>
+                          <div className="p-1.5 bg-slate-50 rounded border border-slate-100">
+                            <span className="text-[10px] text-slate-500 block">{language === 'ar' ? 'العين المصابة' : 'Affected Eye'}</span>
+                            <span className="font-semibold text-slate-800">{formatEyeText(sym.eye)}</span>
+                          </div>
+                          <div className="p-1.5 bg-slate-50 rounded border border-slate-100">
+                            <span className="text-[10px] text-slate-500 block">{language === 'ar' ? 'بداية الأعراض' : 'Onset'}</span>
+                            <span className="font-semibold text-slate-800">{formatOnsetText(sym.onset)}</span>
+                          </div>
+                        </div>
+
+                        {/* Interactive Correction Button and Selection Modal */}
+                        {onCorrectField && (
+                          <div className="pt-2 border-t border-slate-100">
+                            {correctingField === null ? (
+                              <button
+                                type="button"
+                                onClick={() => setCorrectingField('vision_change')}
+                                className="w-full inline-flex items-center justify-center gap-1.5 py-1.5 px-3 bg-teal-50 hover:bg-teal-100 border border-teal-200 text-teal-800 rounded-lg text-xs font-semibold transition-colors"
+                              >
+                                <Edit3 className="w-3.5 h-3.5 text-teal-700" />
+                                <span>{language === 'ar' ? 'تصحيح إجابة أو تعديل عرض' : 'Correct an answer / modify symptom'}</span>
+                              </button>
+                            ) : (
+                              <div className="bg-slate-50 p-2.5 rounded-xl border border-teal-200 space-y-2 animate-fadeIn">
+                                <div className="flex items-center justify-between">
+                                  <span className="font-bold text-xs text-slate-900">
+                                    {language === 'ar' ? 'اختر الحقل المراد تصحيحه:' : 'Select field to correct:'}
+                                  </span>
+                                  <button
+                                    type="button"
+                                    onClick={() => setCorrectingField(null)}
+                                    className="text-[11px] text-slate-400 hover:text-slate-600 underline"
+                                  >
+                                    {language === 'ar' ? 'إلغاء' : 'Cancel'}
+                                  </button>
+                                </div>
+
+                                {/* Select Field Selector */}
+                                <select
+                                  value={correctingField}
+                                  onChange={(e) => setCorrectingField(e.target.value as keyof StructuredSymptoms)}
+                                  className="w-full text-xs p-1.5 rounded border border-slate-300 bg-white text-slate-800 font-medium"
+                                >
+                                  <option value="vision_change">{language === 'ar' ? 'تغير الرؤية' : 'Vision change'}</option>
+                                  <option value="pain_level">{language === 'ar' ? 'مستوى الألم' : 'Pain level'}</option>
+                                  <option value="trauma">{language === 'ar' ? 'إصابة أو خبطة بالعين' : 'Trauma / Eye injury'}</option>
+                                  <option value="chemical_exposure">{language === 'ar' ? 'رذاذ مواد كيميائية أو منظفات' : 'Chemical / Cleaning splash'}</option>
+                                  <option value="contact_lens">{language === 'ar' ? 'ارتداء العدسات اللاصقة' : 'Contact lens wear'}</option>
+                                  <option value="light_sensitivity">{language === 'ar' ? 'حساسية الضوء' : 'Light sensitivity'}</option>
+                                  <option value="eye">{language === 'ar' ? 'العين المصابة' : 'Affected eye'}</option>
+                                  <option value="onset">{language === 'ar' ? 'سرعة بداية الأعراض' : 'Onset speed'}</option>
+                                </select>
+
+                                {/* Value Options for Selected Field */}
+                                <div className="space-y-1">
+                                  <span className="text-[10px] text-slate-500 font-semibold block">
+                                    {language === 'ar' ? 'اختر القيمة المصححة:' : 'Select corrected value:'}
+                                  </span>
+                                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-1 text-[11px]">
+                                    {correctingField === 'vision_change' && (
+                                      <>
+                                        <button
+                                          type="button"
+                                          onClick={() => {
+                                            onCorrectField('vision_change', 'none', 'النظر طبيعي', 'Vision is normal');
+                                            setCorrectingField(null);
+                                          }}
+                                          className="text-left rtl:text-right p-1.5 rounded bg-white hover:bg-teal-50 border border-slate-200 text-slate-800"
+                                        >
+                                          {language === 'ar' ? 'النظر طبيعي' : 'Vision is normal'}
+                                        </button>
+                                        <button
+                                          type="button"
+                                          onClick={() => {
+                                            onCorrectField('vision_change', 'blurred', 'ضبابية أو تشوش', 'Blurred vision');
+                                            setCorrectingField(null);
+                                          }}
+                                          className="text-left rtl:text-right p-1.5 rounded bg-white hover:bg-teal-50 border border-slate-200 text-slate-800"
+                                        >
+                                          {language === 'ar' ? 'ضبابية أو تشوش' : 'Blurred vision'}
+                                        </button>
+                                        <button
+                                          type="button"
+                                          onClick={() => {
+                                            onCorrectField('vision_change', 'loss', 'ضعف أو فقدان شديد', 'Severe vision loss');
+                                            setCorrectingField(null);
+                                          }}
+                                          className="text-left rtl:text-right p-1.5 rounded bg-white hover:bg-rose-50 border border-slate-200 text-rose-800"
+                                        >
+                                          {language === 'ar' ? 'ضعف أو فقدان شديد' : 'Severe vision loss'}
+                                        </button>
+                                        <button
+                                          type="button"
+                                          onClick={() => {
+                                            onCorrectField('vision_change', 'unknown', 'لست متأكداً', 'Not sure');
+                                            setCorrectingField(null);
+                                          }}
+                                          className="text-left rtl:text-right p-1.5 rounded bg-white hover:bg-amber-50 border border-slate-200 text-amber-800"
+                                        >
+                                          {language === 'ar' ? 'لست متأكداً' : 'Not sure'}
+                                        </button>
+                                      </>
+                                    )}
+
+                                    {correctingField === 'pain_level' && (
+                                      <>
+                                        <button
+                                          type="button"
+                                          onClick={() => {
+                                            onCorrectField('pain_level', 'none', 'لا يوجد ألم', 'No pain');
+                                            setCorrectingField(null);
+                                          }}
+                                          className="text-left rtl:text-right p-1.5 rounded bg-white hover:bg-teal-50 border border-slate-200 text-slate-800"
+                                        >
+                                          {language === 'ar' ? 'لا يوجد ألم' : 'No pain'}
+                                        </button>
+                                        <button
+                                          type="button"
+                                          onClick={() => {
+                                            onCorrectField('pain_level', 'mild', 'ألم خفيف أو حكة', 'Mild pain / itch');
+                                            setCorrectingField(null);
+                                          }}
+                                          className="text-left rtl:text-right p-1.5 rounded bg-white hover:bg-teal-50 border border-slate-200 text-slate-800"
+                                        >
+                                          {language === 'ar' ? 'ألم خفيف أو حكة' : 'Mild pain / itch'}
+                                        </button>
+                                        <button
+                                          type="button"
+                                          onClick={() => {
+                                            onCorrectField('pain_level', 'moderate', 'ألم متوسط', 'Moderate pain');
+                                            setCorrectingField(null);
+                                          }}
+                                          className="text-left rtl:text-right p-1.5 rounded bg-white hover:bg-teal-50 border border-slate-200 text-slate-800"
+                                        >
+                                          {language === 'ar' ? 'ألم متوسط' : 'Moderate pain'}
+                                        </button>
+                                        <button
+                                          type="button"
+                                          onClick={() => {
+                                            onCorrectField('pain_level', 'severe', 'ألم شديد جداً', 'Severe unbearable pain');
+                                            setCorrectingField(null);
+                                          }}
+                                          className="text-left rtl:text-right p-1.5 rounded bg-white hover:bg-rose-50 border border-slate-200 text-rose-800"
+                                        >
+                                          {language === 'ar' ? 'ألم شديد جداً' : 'Severe unbearable pain'}
+                                        </button>
+                                        <button
+                                          type="button"
+                                          onClick={() => {
+                                            onCorrectField('pain_level', 'unknown', 'لست متأكداً', 'Not sure');
+                                            setCorrectingField(null);
+                                          }}
+                                          className="text-left rtl:text-right p-1.5 rounded bg-white hover:bg-amber-50 border border-slate-200 text-amber-800"
+                                        >
+                                          {language === 'ar' ? 'لست متأكداً' : 'Not sure'}
+                                        </button>
+                                      </>
+                                    )}
+
+                                    {correctingField === 'trauma' && (
+                                      <>
+                                        <button
+                                          type="button"
+                                          onClick={() => {
+                                            onCorrectField('trauma', true, 'نعم تعرضت لإصابة', 'Yes, had eye injury');
+                                            setCorrectingField(null);
+                                          }}
+                                          className="text-left rtl:text-right p-1.5 rounded bg-white hover:bg-rose-50 border border-slate-200 text-rose-800"
+                                        >
+                                          {language === 'ar' ? '(+) نعم تعرضت لإصابة' : '(+) Yes, had eye injury'}
+                                        </button>
+                                        <button
+                                          type="button"
+                                          onClick={() => {
+                                            onCorrectField('trauma', false, 'لا لم أتعرض لإصابة', 'No injury');
+                                            setCorrectingField(null);
+                                          }}
+                                          className="text-left rtl:text-right p-1.5 rounded bg-white hover:bg-teal-50 border border-slate-200 text-slate-800"
+                                        >
+                                          {language === 'ar' ? '(-) لا لم أتعرض لإصابة' : '(-) No injury'}
+                                        </button>
+                                        <button
+                                          type="button"
+                                          onClick={() => {
+                                            onCorrectField('trauma', null, 'لست متأكداً', 'Not sure');
+                                            setCorrectingField(null);
+                                          }}
+                                          className="text-left rtl:text-right p-1.5 rounded bg-white hover:bg-amber-50 border border-slate-200 text-amber-800"
+                                        >
+                                          {language === 'ar' ? '(?) لست متأكداً' : '(?) Not sure'}
+                                        </button>
+                                      </>
+                                    )}
+
+                                    {correctingField === 'chemical_exposure' && (
+                                      <>
+                                        <button
+                                          type="button"
+                                          onClick={() => {
+                                            onCorrectField('chemical_exposure', true, 'نعم رذاذ منظف أو مواد كيميائية', 'Yes, chemical splash');
+                                            setCorrectingField(null);
+                                          }}
+                                          className="text-left rtl:text-right p-1.5 rounded bg-white hover:bg-rose-50 border border-slate-200 text-rose-800"
+                                        >
+                                          {language === 'ar' ? '(+) نعم رذاذ كيميائي/منظف' : '(+) Yes, chemical/cleaner splash'}
+                                        </button>
+                                        <button
+                                          type="button"
+                                          onClick={() => {
+                                            onCorrectField('chemical_exposure', false, 'لا لم يدخل أي رذاذ كيميائي', 'No chemical splash');
+                                            setCorrectingField(null);
+                                          }}
+                                          className="text-left rtl:text-right p-1.5 rounded bg-white hover:bg-teal-50 border border-slate-200 text-slate-800"
+                                        >
+                                          {language === 'ar' ? '(-) لا مواد كيميائية' : '(-) No chemicals'}
+                                        </button>
+                                        <button
+                                          type="button"
+                                          onClick={() => {
+                                            onCorrectField('chemical_exposure', null, 'لست متأكداً', 'Not sure');
+                                            setCorrectingField(null);
+                                          }}
+                                          className="text-left rtl:text-right p-1.5 rounded bg-white hover:bg-amber-50 border border-slate-200 text-amber-800"
+                                        >
+                                          {language === 'ar' ? '(?) لست متأكداً' : '(?) Not sure'}
+                                        </button>
+                                      </>
+                                    )}
+
+                                    {correctingField === 'contact_lens' && (
+                                      <>
+                                        <button
+                                          type="button"
+                                          onClick={() => {
+                                            onCorrectField('contact_lens', true, 'نعم أرتدي عدسات لاصقة', 'Yes, wear contact lenses');
+                                            setCorrectingField(null);
+                                          }}
+                                          className="text-left rtl:text-right p-1.5 rounded bg-white hover:bg-teal-50 border border-slate-200 text-slate-800"
+                                        >
+                                          {language === 'ar' ? '(+) نعم أرتدي عدسات' : '(+) Yes, wear lenses'}
+                                        </button>
+                                        <button
+                                          type="button"
+                                          onClick={() => {
+                                            onCorrectField('contact_lens', false, 'لا أرتدي عدسات', 'No lenses');
+                                            setCorrectingField(null);
+                                          }}
+                                          className="text-left rtl:text-right p-1.5 rounded bg-white hover:bg-teal-50 border border-slate-200 text-slate-800"
+                                        >
+                                          {language === 'ar' ? '(-) لا أرتدي عدسات' : '(-) No lenses'}
+                                        </button>
+                                        <button
+                                          type="button"
+                                          onClick={() => {
+                                            onCorrectField('contact_lens', null, 'لست متأكداً', 'Not sure');
+                                            setCorrectingField(null);
+                                          }}
+                                          className="text-left rtl:text-right p-1.5 rounded bg-white hover:bg-amber-50 border border-slate-200 text-amber-800"
+                                        >
+                                          {language === 'ar' ? '(?) لست متأكداً' : '(?) Not sure'}
+                                        </button>
+                                      </>
+                                    )}
+
+                                    {correctingField === 'light_sensitivity' && (
+                                      <>
+                                        <button
+                                          type="button"
+                                          onClick={() => {
+                                            onCorrectField('light_sensitivity', true, 'نعم حساسية من الضوء', 'Yes, light sensitivity');
+                                            setCorrectingField(null);
+                                          }}
+                                          className="text-left rtl:text-right p-1.5 rounded bg-white hover:bg-teal-50 border border-slate-200 text-slate-800"
+                                        >
+                                          {language === 'ar' ? '(+) نعم حساسية ضوء' : '(+) Yes, photophobia'}
+                                        </button>
+                                        <button
+                                          type="button"
+                                          onClick={() => {
+                                            onCorrectField('light_sensitivity', false, 'لا توجد حساسية ضوء', 'No light sensitivity');
+                                            setCorrectingField(null);
+                                          }}
+                                          className="text-left rtl:text-right p-1.5 rounded bg-white hover:bg-teal-50 border border-slate-200 text-slate-800"
+                                        >
+                                          {language === 'ar' ? '(-) لا حساسية ضوء' : '(-) No photophobia'}
+                                        </button>
+                                        <button
+                                          type="button"
+                                          onClick={() => {
+                                            onCorrectField('light_sensitivity', null, 'لست متأكداً', 'Not sure');
+                                            setCorrectingField(null);
+                                          }}
+                                          className="text-left rtl:text-right p-1.5 rounded bg-white hover:bg-amber-50 border border-slate-200 text-amber-800"
+                                        >
+                                          {language === 'ar' ? '(?) لست متأكداً' : '(?) Not sure'}
+                                        </button>
+                                      </>
+                                    )}
+
+                                    {correctingField === 'eye' && (
+                                      <>
+                                        <button
+                                          type="button"
+                                          onClick={() => {
+                                            onCorrectField('eye', 'right', 'العين اليمنى', 'Right eye');
+                                            setCorrectingField(null);
+                                          }}
+                                          className="text-left rtl:text-right p-1.5 rounded bg-white hover:bg-teal-50 border border-slate-200 text-slate-800"
+                                        >
+                                          {language === 'ar' ? 'اليمنى' : 'Right eye'}
+                                        </button>
+                                        <button
+                                          type="button"
+                                          onClick={() => {
+                                            onCorrectField('eye', 'left', 'العين اليسرى', 'Left eye');
+                                            setCorrectingField(null);
+                                          }}
+                                          className="text-left rtl:text-right p-1.5 rounded bg-white hover:bg-teal-50 border border-slate-200 text-slate-800"
+                                        >
+                                          {language === 'ar' ? 'اليسرى' : 'Left eye'}
+                                        </button>
+                                        <button
+                                          type="button"
+                                          onClick={() => {
+                                            onCorrectField('eye', 'both', 'كلتا العينين', 'Both eyes');
+                                            setCorrectingField(null);
+                                          }}
+                                          className="text-left rtl:text-right p-1.5 rounded bg-white hover:bg-teal-50 border border-slate-200 text-slate-800"
+                                        >
+                                          {language === 'ar' ? 'كلتا العينين' : 'Both eyes'}
+                                        </button>
+                                      </>
+                                    )}
+
+                                    {correctingField === 'onset' && (
+                                      <>
+                                        <button
+                                          type="button"
+                                          onClick={() => {
+                                            onCorrectField('onset', 'sudden', 'مفاجئ (فجأة)', 'Sudden');
+                                            setCorrectingField(null);
+                                          }}
+                                          className="text-left rtl:text-right p-1.5 rounded bg-white hover:bg-teal-50 border border-slate-200 text-slate-800"
+                                        >
+                                          {language === 'ar' ? 'مفاجئ (فجأة)' : 'Sudden'}
+                                        </button>
+                                        <button
+                                          type="button"
+                                          onClick={() => {
+                                            onCorrectField('onset', 'gradual', 'تدريجي', 'Gradual');
+                                            setCorrectingField(null);
+                                          }}
+                                          className="text-left rtl:text-right p-1.5 rounded bg-white hover:bg-teal-50 border border-slate-200 text-slate-800"
+                                        >
+                                          {language === 'ar' ? 'تدريجي' : 'Gradual'}
+                                        </button>
+                                      </>
+                                    )}
+                                  </div>
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </div>
+
                   {/* Urgency Badge */}
                   <div className="flex items-center justify-between border-b border-black/10 pb-2">
                     <div className="flex items-center gap-1.5">

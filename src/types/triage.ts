@@ -159,6 +159,7 @@ export interface SessionEvent {
     | 'URGENCY_RESOLVED'
     | 'FACILITY_ROUTED'
     | 'FOLLOW_UP_ASKED'
+    | 'SYMPTOM_CORRECTION'
     | 'CLINICIAN_REVIEWED';
   summaryAr: string;
   summaryEn: string;

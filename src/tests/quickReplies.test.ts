@@ -644,8 +644,78 @@ async function runQuickReplyTests() {
     'English prompt asks about cleaning/chemical splash'
   );
 
+  // --------------------------------------------------------------------------
+  // Group 9: Answer Summary, Tri-State Distinctions, Field Corrections, and Sticky Emergency
+  // --------------------------------------------------------------------------
+  console.log('\n--- Group 9: Answer Summary & Field Correction Invariants ---');
+
+  // 1. Check Scenario 4 Summary fields
+  let g9Sess = await orchestrator.createNewSession('ar', false);
+  g9Sess = await orchestrator.handleConsent(g9Sess, true);
+  g9Sess = await orchestrator.processPatientMessage(g9Sess, {
+    text: sc4.initialMessageAr,
+    isVoice: sc4.isVoiceSample,
+    voiceDuration: sc4.voiceDurationSeconds,
+    userCity: sc4.locationCity,
+  });
+
+  // Answer vision to complete triage
+  let lastPrompt = g9Sess.messages[g9Sess.messages.length - 1];
+  g9Sess = await orchestrator.processPatientMessage(g9Sess, {
+    text: 'النظر طبيعي',
+    quickReply: STABLE_QUICK_REPLIES['vision_change:none'],
+    parentMessageId: lastPrompt.id,
+  });
+
+  assert(g9Sess.status === 'COMPLETED', 'Session completes after vision answer');
+  assert(g9Sess.decision?.finalUrgency === 'URGENT', 'Scenario 4 final urgency is URGENT');
+  assert(g9Sess.symptoms.contact_lens === true, 'contact_lens is true in symptoms');
+  assert(g9Sess.symptoms.chemical_exposure === false, 'chemical_exposure is false (denied)');
+  assert(g9Sess.symptoms.trauma === false, 'trauma is false (denied)');
+  assert(g9Sess.symptoms.nausea_vomiting === null, 'nausea_vomiting is null (unknown, not false)');
+
+  // 2. Correcting an answer updates the field authoritatively and re-evaluates
+  // If patient corrects vision_change to 'loss', RF-01 triggers immediate EMERGENCY
+  g9Sess = await orchestrator.correctSymptomField(
+    g9Sess,
+    'vision_change',
+    'loss',
+    'ضعف أو فقدان شديد',
+    'Severe vision loss'
+  );
+
+  assert(g9Sess.symptoms.vision_change === 'loss', 'vision_change is now updated to loss');
+  assert(g9Sess.decision?.finalUrgency === 'EMERGENCY', 'Triage re-evaluated to EMERGENCY upon vision loss correction');
+  assert(g9Sess.routedFacility?.tier === 'EMERGENCY', 'Facility re-routed to EMERGENCY tier');
+
+  // 3. Sticky Emergency Invariant: Once emergency is reached, correcting a non-urgent field does NOT silently downgrade
+  g9Sess = await orchestrator.correctSymptomField(
+    g9Sess,
+    'pain_level',
+    'none',
+    'لا يوجد ألم',
+    'No pain'
+  );
+  assert(g9Sess.decision?.finalUrgency === 'EMERGENCY', 'Sticky emergency invariant maintained: emergency recommendation is NOT silently downgraded');
+
+  // 4. Switching scenarios does not carry over answers
+  const sc2 = DEMO_SCENARIOS.find((s) => s.id === 'sc-2-chemical-splash');
+  assert(Boolean(sc2), 'Scenario 2 (chemical splash) exists');
+  if (sc2) {
+    let freshSess = await orchestrator.createNewSession('ar', false);
+    freshSess = await orchestrator.handleConsent(freshSess, true);
+    freshSess = await orchestrator.processPatientMessage(freshSess, {
+      text: sc2.initialMessageAr,
+      isVoice: sc2.isVoiceSample,
+      voiceDuration: sc2.voiceDurationSeconds,
+      userCity: sc2.locationCity,
+    });
+    assert(freshSess.symptoms.chemical_exposure === true, 'Scenario 2 has chemical_exposure=true');
+    assert(freshSess.symptoms.contact_lens === null, 'Scenario 2 does not carry over contact_lens=true from Scenario 4');
+  }
+
   console.log('\n========================================');
-  console.log('All Follow-Up Quick Reply Tests Passed!');
+  console.log('All Follow-Up Quick Reply & Correction Tests Passed!');
   console.log('========================================\n');
 }
 

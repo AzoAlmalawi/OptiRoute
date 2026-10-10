@@ -8,7 +8,7 @@ import { SafetyAuditModal } from './components/HospitalDashboard/SafetyAuditModa
 import { RoadmapModal } from './components/HospitalDashboard/RoadmapModal';
 import { orchestrator } from './services/triageOrchestrator';
 import { SESSIONS_UPDATE_EVENT } from './services/providers';
-import { TriageSession, Language, DemoScenario, QuickReplyOption } from './types/triage';
+import { TriageSession, Language, DemoScenario, QuickReplyOption, StructuredSymptoms } from './types/triage';
 import { DEMO_SCENARIOS } from './data/scenarios';
 import { ChevronDown, ChevronUp, Layers, Activity, Sparkles, HelpCircle, RotateCcw } from 'lucide-react';
 
@@ -222,6 +222,31 @@ export default function App() {
     }
   };
 
+  // Handle symptom field correction from the answer summary
+  const handleCorrectField = async (
+    field: keyof StructuredSymptoms,
+    value: unknown,
+    labelAr: string,
+    labelEn: string
+  ) => {
+    if (!currentSession || isProcessing) return;
+    setIsProcessing(true);
+    try {
+      const updated = await orchestrator.correctSymptomField(
+        currentSession,
+        field,
+        value,
+        labelAr,
+        labelEn,
+        selectedCity
+      );
+      updateActiveSession(updated);
+      await loadSessions();
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+
   // Submit clinician review
   const handleSubmitReview = async (
     sessionId: string,
@@ -412,6 +437,7 @@ export default function App() {
                     onSelectCity={setSelectedCity}
                     isLoading={isProcessing}
                     queuedScenarioTitle={activeCaseTitle}
+                    onCorrectField={handleCorrectField}
                   />
                 )}
               </div>

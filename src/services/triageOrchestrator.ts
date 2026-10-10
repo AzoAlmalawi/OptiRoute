@@ -1090,6 +1090,134 @@ export class TriageOrchestrator {
   }
 
   /**
+   * Authoritatively corrects a symptom field for an active session.
+   * - Overrides the field value in session.symptoms without appending contradictory values.
+   * - Updates answeredFields and records a structured audit event.
+   * - Appends a patient message showing the correction.
+   * - Re-runs the deterministic rule engine and triage decision resolver,
+   *   strictly preserving the sticky emergency non-downgrade policy.
+   * - Recomputes facility routing and updates the result card message.
+   */
+  async correctSymptomField(
+    session: TriageSession,
+    field: keyof StructuredSymptoms,
+    value: unknown,
+    labelAr: string,
+    labelEn: string,
+    userCity: string = 'Riyadh'
+  ): Promise<TriageSession> {
+    const updated = JSON.parse(JSON.stringify(session)) as TriageSession;
+    const now = new Date().toISOString();
+
+    // 1. Authoritatively set the structured field
+    (updated.symptoms as unknown as Record<string, unknown>)[field] = value;
+
+    // 2. Update answeredFields
+    if (!updated.answeredFields) {
+      updated.answeredFields = {};
+    }
+    updated.answeredFields[field] = {
+      field,
+      value,
+      labelAr,
+      labelEn,
+      timestamp: now,
+    };
+
+    // 3. Append patient message documenting the correction
+    const patientMsgText =
+      updated.language === 'ar'
+        ? `تصحيح إجابة: [${labelAr}]`
+        : `Answer correction: [${labelEn}]`;
+
+    const correctionMsg: ChatMessage = {
+      id: `msg-${Date.now()}-correction-pat`,
+      sender: 'patient',
+      type: 'text',
+      timestamp: now,
+      text: patientMsgText,
+    };
+    updated.messages.push(correctionMsg);
+
+    // 4. Record audit event in session history
+    updated.events.push({
+      id: `evt-${Date.now()}-correction`,
+      timestamp: now,
+      type: 'SYMPTOM_CORRECTION',
+      summaryAr: `تصحيح يدوي للحقل: ${String(field)} = ${String(value)} (${labelAr})`,
+      summaryEn: `Manual correction of field: ${String(field)} = ${String(value)} (${labelEn})`,
+      detail: { field, value, labelAr, labelEn },
+    });
+
+    // 5. Gather all patient texts for rule engine evaluation
+    const allPatientTexts = updated.messages
+      .filter((m) => m.sender === 'patient' && typeof m.text === 'string' && m.text.length > 0)
+      .map((m) => m.text as string);
+
+    // 6. Re-evaluate rule engine and model suggestion
+    const ruleResult = runDeterministicRuleEngine(allPatientTexts, updated.symptoms);
+    const modelSuggestion = await this.modelProvider.suggestUrgency(
+      updated.symptoms,
+      allPatientTexts.join('\n')
+    );
+
+    // 7. Re-evaluate triage decision while preserving sticky emergency policy
+    const finalDecision = resolveTriageDecision(
+      ruleResult,
+      modelSuggestion,
+      updated.decision,
+      { isFinal: true, symptoms: updated.symptoms }
+    );
+    updated.decision = finalDecision;
+
+    // 8. Recompute facility routing
+    const routingResult = getRecommendedFacility(
+      finalDecision.finalUrgency,
+      userCity
+    );
+    updated.routedFacility = routingResult.facility;
+    updated.routingExplanationAr = routingResult.explanationAr;
+    updated.routingExplanationEn = routingResult.explanationEn;
+    updated.status = 'COMPLETED';
+
+    // 9. Update existing result card in messages or append new one
+    const existingResultIndex = updated.messages.findIndex((m) => m.type === 'result_card');
+    const resultCardMessage: ChatMessage = {
+      id: existingResultIndex >= 0 ? updated.messages[existingResultIndex].id : `msg-${Date.now()}-card`,
+      sender: 'bot',
+      type: 'result_card',
+      timestamp: now,
+      decisionPayload: finalDecision,
+      facilityPayload: routingResult.facility,
+      routingExplanationAr: routingResult.explanationAr,
+      routingExplanationEn: routingResult.explanationEn,
+      text:
+        updated.language === 'ar'
+          ? `نتيجة الفرز الطبي: ${finalDecision.finalUrgency === 'EMERGENCY' ? '🚨 حالة طارئة' : finalDecision.finalUrgency === 'URGENT' ? '⚠️ تقييم عاجل (اليوم نفسه)' : 'ℹ️ غير عاجل'}\n${finalDecision.guidanceTextAr}`
+          : `Triage Result: ${finalDecision.finalUrgency === 'EMERGENCY' ? '🚨 EMERGENCY' : finalDecision.finalUrgency === 'URGENT' ? '⚠️ URGENT (SAME DAY)' : 'ℹ️ NON-URGENT'}\n${finalDecision.guidanceTextEn}`,
+    };
+
+    if (existingResultIndex >= 0) {
+      updated.messages[existingResultIndex] = resultCardMessage;
+    } else {
+      updated.messages.push(resultCardMessage);
+    }
+
+    // 10. Record decision update event
+    updated.events.push({
+      id: `evt-${Date.now()}-reassessed`,
+      timestamp: now,
+      type: 'URGENCY_RESOLVED',
+      summaryAr: `إعادة تقييم بعد التصحيح: ${finalDecision.finalUrgency} (المصدر: ${finalDecision.decisionSource})`,
+      summaryEn: `Re-assessed after correction: ${finalDecision.finalUrgency} (Source: ${finalDecision.decisionSource})`,
+      detail: { finalUrgency: finalDecision.finalUrgency, decisionSource: finalDecision.decisionSource },
+    });
+
+    await this.repository.saveSession(updated);
+    return updated;
+  }
+
+  /**
    * Records clinician review feedback on the hospital dashboard (FR-24)
    */
   async submitClinicianReview(
