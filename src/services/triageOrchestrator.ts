@@ -386,17 +386,6 @@ export function resolveQuickReplyFromInput(
     return STABLE_QUICK_REPLIES['onset:gradual'];
   }
 
-  if (
-    clean === 'لست متأكدًا' ||
-    clean === 'لست متأكدا' ||
-    clean === 'مو متأكد' ||
-    clean === 'غير متأكد' ||
-    lower === 'not sure' ||
-    lower === "i'm not sure"
-  ) {
-    return STABLE_QUICK_REPLIES['onset:unknown'];
-  }
-
   return null;
 }
 
@@ -580,7 +569,36 @@ export class TriageOrchestrator {
     let rawText = params.text.trim();
 
     // 0. Resolve if this message corresponds to a stable structured quick reply
-    const resolvedAction = resolveQuickReplyFromInput(rawText, params.quickReply);
+    let resolvedAction = resolveQuickReplyFromInput(rawText, params.quickReply);
+
+    // If not resolved from static dictionary and user typed "not sure" / "لست متأكدًا",
+    // resolve from the active pending bot prompt's quick reply options
+    if (!resolvedAction) {
+      const clean = rawText.trim().toLowerCase();
+      const isNotSure =
+        clean === 'لست متأكدًا' ||
+        clean === 'لست متأكدا' ||
+        clean === 'مو متأكد' ||
+        clean === 'غير متأكد' ||
+        clean === 'not sure' ||
+        clean === "i'm not sure";
+
+      if (isNotSure) {
+        // Find the last bot message with quick replies
+        const lastBotWithReplies = [...updated.messages]
+          .reverse()
+          .find((m) => m.sender === 'bot' && m.quickReplies && m.quickReplies.length > 0 && (!params.parentMessageId || m.id === params.parentMessageId));
+
+        if (lastBotWithReplies && lastBotWithReplies.quickReplies) {
+          const unknownOption = lastBotWithReplies.quickReplies.find(
+            (qr) => qr.fieldValue === 'unknown' || qr.fieldValue === null
+          );
+          if (unknownOption) {
+            resolvedAction = resolveQuickReplyFromInput(rawText, unknownOption);
+          }
+        }
+      }
+    }
 
     if (resolvedAction) {
       // Directly and authoritatively set the structured symptom field
