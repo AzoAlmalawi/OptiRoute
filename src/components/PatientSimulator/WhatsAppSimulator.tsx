@@ -26,6 +26,7 @@ import {
   HelpCircle,
   Check,
   X,
+  ArrowDown,
 } from 'lucide-react';
 
 interface WhatsAppSimulatorProps {
@@ -73,12 +74,51 @@ export const WhatsAppSimulator: React.FC<WhatsAppSimulatorProps> = ({
   const [showTechnicalRules, setShowTechnicalRules] = useState<Record<string, boolean>>({});
   const [summaryExpanded, setSummaryExpanded] = useState<Record<string, boolean>>({});
   const [correctingField, setCorrectingField] = useState<keyof StructuredSymptoms | null>(null);
-  const chatBottomRef = useRef<HTMLDivElement>(null);
+  const [hasUnreadBelow, setHasUnreadBelow] = useState(false);
+  const chatScrollContainerRef = useRef<HTMLDivElement>(null);
+  const prevMessagesCountRef = useRef<number>(session.messages.length);
+  const isNearBottomRef = useRef<boolean>(true);
 
-  // Auto-scroll chat to bottom on new messages
+  // Helper to scroll only the chat internal container to bottom without moving the outer page
+  const scrollChatToBottom = (behavior: ScrollBehavior = 'smooth') => {
+    const el = chatScrollContainerRef.current;
+    if (el) {
+      el.scrollTo({ top: el.scrollHeight, behavior });
+      setHasUnreadBelow(false);
+      isNearBottomRef.current = true;
+    }
+  };
+
+  // Track whether user is reading earlier messages
+  const handleChatScroll = () => {
+    const el = chatScrollContainerRef.current;
+    if (!el) return;
+    const distanceFromBottom = el.scrollHeight - el.scrollTop - el.clientHeight;
+    const nearBottom = distanceFromBottom < 80;
+    isNearBottomRef.current = nearBottom;
+    if (nearBottom && hasUnreadBelow) {
+      setHasUnreadBelow(false);
+    }
+  };
+
+  // Auto-scroll chat internally only when a new message arrives, and only if user was near bottom
   useEffect(() => {
-    chatBottomRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [session.messages, isLoading]);
+    const currentCount = session.messages.length;
+    const prevCount = prevMessagesCountRef.current;
+    prevMessagesCountRef.current = currentCount;
+
+    // Only respond to actual message additions or new session loading
+    if (currentCount > prevCount) {
+      if (isNearBottomRef.current) {
+        scrollChatToBottom('smooth');
+      } else {
+        setHasUnreadBelow(true);
+      }
+    } else if (prevCount === 0 && currentCount > 0) {
+      // First mount or session reset
+      scrollChatToBottom('auto');
+    }
+  }, [session.messages.length, session.id]);
 
   // Voice recording simulation timer
   useEffect(() => {
@@ -258,7 +298,11 @@ export const WhatsAppSimulator: React.FC<WhatsAppSimulatorProps> = ({
       )}
 
       {/* WhatsApp Chat Wallpaper / Background */}
-      <div className="flex-1 bg-[#efeae2] overflow-y-auto p-3.5 space-y-3 relative">
+      <div
+        ref={chatScrollContainerRef}
+        onScroll={handleChatScroll}
+        className="flex-1 bg-[#efeae2] overflow-y-auto p-3.5 space-y-3 relative"
+      >
         {/* Date header */}
         <div className="flex justify-center my-1">
           <span className="text-[10px] text-slate-600 bg-white/80 backdrop-blur-xs px-2.5 py-0.5 rounded-full shadow-2xs font-medium">
@@ -1213,7 +1257,19 @@ export const WhatsAppSimulator: React.FC<WhatsAppSimulatorProps> = ({
           </div>
         )}
 
-        <div ref={chatBottomRef} />
+        {/* Floating "New message" pill if user is reading earlier messages */}
+        {hasUnreadBelow && (
+          <div className="sticky bottom-2 flex justify-center z-20 pointer-events-none">
+            <button
+              type="button"
+              onClick={() => scrollChatToBottom('smooth')}
+              className="pointer-events-auto inline-flex items-center gap-1.5 px-3 py-1.5 bg-emerald-700 hover:bg-emerald-800 text-white rounded-full shadow-lg text-xs font-semibold animate-bounce transition-colors"
+            >
+              <ArrowDown className="w-3.5 h-3.5" />
+              <span>{language === 'ar' ? 'رسالة جديدة' : 'New message'}</span>
+            </button>
+          </div>
+        )}
       </div>
 
       {/* Voice Recording Active Banner */}
