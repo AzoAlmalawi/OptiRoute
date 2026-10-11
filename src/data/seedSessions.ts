@@ -56,6 +56,7 @@ export function generateSeedSessions(baseDate: Date = new Date()): TriageSession
     consentGiven: true,
     status: 'COMPLETED',
     followUpCount: 0,
+    scenarioId: 'sc-2-chemical-splash',
     symptoms: {
       ...createEmptySymptoms('ar'),
       eye: 'left',
@@ -250,6 +251,7 @@ export function generateSeedSessions(baseDate: Date = new Date()): TriageSession
     consentGiven: true,
     status: 'COMPLETED',
     followUpCount: 1,
+    scenarioId: 'sc-4-same-day-urgent',
     symptoms: {
       ...createEmptySymptoms('ar'),
       eye: 'right',
@@ -456,6 +458,7 @@ export function generateSeedSessions(baseDate: Date = new Date()): TriageSession
     consentGiven: true,
     status: 'COMPLETED',
     followUpCount: 0,
+    scenarioId: 'sc-5-non-urgent',
     symptoms: {
       ...createEmptySymptoms('ar'),
       eye: 'both',

@@ -794,6 +794,7 @@ export function normalizeStoredSession(raw: any): TriageSession {
     consentGiven: raw.consentGiven !== undefined ? Boolean(raw.consentGiven) : true,
     status,
     followUpCount: typeof raw.followUpCount === 'number' ? raw.followUpCount : 0,
+    scenarioId: typeof raw.scenarioId === 'string' ? raw.scenarioId : undefined,
     messages: Array.isArray(raw.messages) ? raw.messages : [],
     symptoms,
     decision,

@@ -405,7 +405,8 @@ export class TriageOrchestrator {
    */
   async createNewSession(
     language: Language = 'en',
-    persist: boolean = true
+    persist: boolean = true,
+    scenarioId?: string
   ): Promise<TriageSession> {
     const existing = await this.repository.getAllSessions();
     const existingIds = new Set(existing.map((s) => s.id));
@@ -466,6 +467,7 @@ export class TriageOrchestrator {
       consentGiven: false,
       status: 'AWAITING_CONSENT',
       followUpCount: 0,
+      scenarioId,
       messages: [consentMessage],
       symptoms: createEmptySymptoms(language),
       events: [initialEvent],

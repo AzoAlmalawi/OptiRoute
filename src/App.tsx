@@ -10,6 +10,7 @@ import { orchestrator } from './services/triageOrchestrator';
 import { SESSIONS_UPDATE_EVENT } from './services/providers';
 import { TriageSession, Language, DemoScenario, QuickReplyOption, StructuredSymptoms } from './types/triage';
 import { DEMO_SCENARIOS } from './data/scenarios';
+import { getSessionCaseDisplay } from './utils/sessionScenario';
 import { ChevronDown, ChevronUp, Layers, Activity, Sparkles, HelpCircle, RotateCcw } from 'lucide-react';
 
 export default function App() {
@@ -185,8 +186,7 @@ export default function App() {
     try {
       // 1, 2, 3: Create a fresh session with a new ID and reset state
       // (saving the fresh session preserves all existing sessions in the repository)
-      const freshSession = await orchestrator.createNewSession(language, true);
-      freshSession.scenarioId = scenario.id;
+      const freshSession = await orchestrator.createNewSession(language, true, scenario.id);
       updateActiveSession(freshSession);
 
       // 4: Queue the selected scenario and require explicit consent before processing it
@@ -277,17 +277,8 @@ export default function App() {
     }
   };
 
-  const activeCaseScenario =
-    queuedScenario ||
-    DEMO_SCENARIOS.find(
-      (s) => s.id === activeScenarioId || s.id === currentSession?.scenarioId
-    );
-
-  const activeCaseTitle = activeCaseScenario
-    ? language === 'ar'
-      ? activeCaseScenario.titleAr
-      : activeCaseScenario.titleEn
-    : undefined;
+  const caseDisplay = getSessionCaseDisplay(currentSession, language, queuedScenario);
+  const activeCaseTitle = caseDisplay.title;
 
   return (
     <div className="min-h-screen bg-slate-50 text-slate-900 flex flex-col font-sans selection:bg-teal-100 selection:text-teal-900 w-full max-w-full overflow-x-hidden">
@@ -310,15 +301,20 @@ export default function App() {
                 <span className="text-xs font-semibold text-slate-500 shrink-0">
                   {language === 'ar' ? 'الحالة الحالية:' : 'Current Case:'}
                 </span>
-                {activeCaseTitle ? (
+                {caseDisplay.kind === 'scenario' ? (
                   <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-semibold bg-slate-100 text-slate-800 border border-slate-200 truncate max-w-full">
                     <span className="text-teal-700">📌</span>
                     <span className="truncate">{activeCaseTitle}</span>
                   </span>
+                ) : caseDisplay.kind === 'saved_conversation' ? (
+                  <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-medium bg-slate-100 text-slate-700 border border-slate-200">
+                    <span className="text-slate-500">📁</span>
+                    <span>{activeCaseTitle}</span>
+                  </span>
                 ) : (
                   <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-medium bg-slate-100 text-slate-700 border border-slate-200">
                     <span className="text-teal-700">💬</span>
-                    <span>{language === 'ar' ? 'محادثة حرة افتراضية' : 'Custom simulated chat'}</span>
+                    <span>{activeCaseTitle}</span>
                   </span>
                 )}
               </div>
