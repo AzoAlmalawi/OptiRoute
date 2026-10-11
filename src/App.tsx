@@ -94,6 +94,31 @@ export default function App() {
     if (typeof window !== 'undefined' && typeof localStorage !== 'undefined') {
       localStorage.setItem('optiroute_language_preference', nextLang);
     }
+
+    // If there is an active session at the initial consent stage, update its consent notice text
+    // and session language immediately without altering historical completed sessions or resetting state.
+    if (currentSession) {
+      const welcomeText =
+        nextLang === 'ar'
+          ? 'مرحبًا بك في OptiRoute. نساعدك على معرفة مدى استعجال أعراض العين والجهة المناسبة للتوجه إليها.\n\n⚠️ إشعار هام: هذه تجربة لحالات افتراضية، وليست تشخيصًا طبيًا ولا تقدم وصفات علاجية. في حالات الطوارئ القصوى، اتصل فورًا بالهلال الأحمر (997) أو توجه لأقرب مستشفى.'
+          : 'Welcome to OptiRoute. We help you understand the urgency of your eye symptoms and guide you to the appropriate facility.\n\n⚠️ Important Notice: This is a prototype for simulated cases only, not a medical diagnosis or treatment prescription. In emergencies, call 997 or go to the nearest hospital immediately.';
+
+      const updatedMessages = currentSession.messages.map((m) => {
+        if (m.type === 'consent' || m.id.includes('welcome')) {
+          return {
+            ...m,
+            text: welcomeText,
+          };
+        }
+        return m;
+      });
+
+      setCurrentSession({
+        ...currentSession,
+        language: nextLang,
+        messages: updatedMessages,
+      });
+    }
   };
 
   // Handle patient message
