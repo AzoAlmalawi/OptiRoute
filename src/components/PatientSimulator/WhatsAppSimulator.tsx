@@ -377,28 +377,7 @@ export const WhatsAppSimulator: React.FC<WhatsAppSimulatorProps> = ({
             const isEmergency = dec.finalUrgency === 'EMERGENCY';
             const isUrgent = dec.finalUrgency === 'URGENT';
             const fac = msg.facilityPayload;
-
-            const isSummaryOpen = summaryExpanded[msg.id] ?? false; // Collapsed by default to avoid crowding the final assessment
             const sym = session.symptoms;
-
-            // Generate a concise preview of confirmed findings or chief symptoms
-            const summaryPreviewItems: string[] = [];
-            if (sym.chemical_exposure === true) summaryPreviewItems.push(language === 'ar' ? 'مادة كيميائية (+)' : 'Chemical splash (+)');
-            if (sym.trauma === true) summaryPreviewItems.push(language === 'ar' ? 'إصابة بالعين (+)' : 'Eye trauma (+)');
-            if (sym.vision_change && sym.vision_change !== 'unknown' && sym.vision_change !== 'none') {
-              summaryPreviewItems.push(language === 'ar' ? `تغير رؤية: ${formatVisionText(sym.vision_change)}` : `Vision: ${formatVisionText(sym.vision_change)}`);
-            }
-            if (sym.pain_level && sym.pain_level !== 'unknown' && sym.pain_level !== 'none') {
-              summaryPreviewItems.push(language === 'ar' ? `ألم: ${formatPainText(sym.pain_level)}` : `Pain: ${formatPainText(sym.pain_level)}`);
-            }
-            if (sym.contact_lens === true) summaryPreviewItems.push(language === 'ar' ? 'عدسات (+)' : 'Lenses (+)');
-            if (sym.light_sensitivity === true) summaryPreviewItems.push(language === 'ar' ? 'حساسية ضوء (+)' : 'Photophobia (+)');
-            if (sym.redness === true) summaryPreviewItems.push(language === 'ar' ? 'احمرار (+)' : 'Redness (+)');
-            if (sym.discharge === true) summaryPreviewItems.push(language === 'ar' ? 'إفرازات (+)' : 'Discharge (+)');
-            if (summaryPreviewItems.length === 0) {
-              summaryPreviewItems.push(language === 'ar' ? 'تم تسجيل وتوثيق إجابات الفرز' : 'Triage answers recorded');
-            }
-            const previewText = summaryPreviewItems.slice(0, 3).join(' • ');
 
             const formatFieldTriState = (val: boolean | null | undefined, labelAr: string, labelEn: string) => {
               if (val === true) {
@@ -483,6 +462,27 @@ export const WhatsAppSimulator: React.FC<WhatsAppSimulatorProps> = ({
                   return language === 'ar' ? '(?) غير محدد' : '(?) Unknown';
               }
             };
+
+            const isSummaryOpen = summaryExpanded[msg.id] ?? false; // Collapsed by default to avoid crowding the final assessment
+
+            // Generate a concise preview of confirmed findings or chief symptoms
+            const summaryPreviewItems: string[] = [];
+            if (sym.chemical_exposure === true) summaryPreviewItems.push(language === 'ar' ? 'مادة كيميائية (+)' : 'Chemical splash (+)');
+            if (sym.trauma === true) summaryPreviewItems.push(language === 'ar' ? 'إصابة بالعين (+)' : 'Eye trauma (+)');
+            if (sym.vision_change && sym.vision_change !== 'unknown' && sym.vision_change !== 'none') {
+              summaryPreviewItems.push(language === 'ar' ? `تغير رؤية: ${formatVisionText(sym.vision_change)}` : `Vision: ${formatVisionText(sym.vision_change)}`);
+            }
+            if (sym.pain_level && sym.pain_level !== 'unknown' && sym.pain_level !== 'none') {
+              summaryPreviewItems.push(language === 'ar' ? `ألم: ${formatPainText(sym.pain_level)}` : `Pain: ${formatPainText(sym.pain_level)}`);
+            }
+            if (sym.contact_lens === true) summaryPreviewItems.push(language === 'ar' ? 'عدسات (+)' : 'Lenses (+)');
+            if (sym.light_sensitivity === true) summaryPreviewItems.push(language === 'ar' ? 'حساسية ضوء (+)' : 'Photophobia (+)');
+            if (sym.redness === true) summaryPreviewItems.push(language === 'ar' ? 'احمرار (+)' : 'Redness (+)');
+            if (sym.discharge === true) summaryPreviewItems.push(language === 'ar' ? 'إفرازات (+)' : 'Discharge (+)');
+            if (summaryPreviewItems.length === 0) {
+              summaryPreviewItems.push(language === 'ar' ? 'تم تسجيل وتوثيق إجابات الفرز' : 'Triage answers recorded');
+            }
+            const previewText = summaryPreviewItems.slice(0, 3).join(' • ');
 
             return (
               <div key={msg.id} className="flex justify-start my-2 max-w-[92%]">
