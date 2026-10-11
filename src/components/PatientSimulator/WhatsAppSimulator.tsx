@@ -198,7 +198,7 @@ export const WhatsAppSimulator: React.FC<WhatsAppSimulatorProps> = ({
   };
 
   return (
-    <div className="flex flex-col h-[calc(100dvh-80px)] sm:h-[calc(100dvh-95px)] md:h-[calc(100dvh-100px)] min-h-[520px] max-h-[880px] w-full max-w-full sm:max-w-[480px] md:max-w-[620px] lg:max-w-[690px] mx-auto bg-slate-900 rounded-2xl sm:rounded-3xl overflow-hidden shadow-xl border-2 sm:border-4 border-slate-800">
+    <div className="flex flex-col h-[calc(100dvh-80px)] sm:h-[calc(100dvh-95px)] md:h-[calc(100dvh-100px)] min-h-[520px] max-h-[880px] w-full max-w-full sm:max-w-[480px] md:max-w-[620px] lg:max-w-[690px] mx-auto bg-slate-900 rounded-2xl sm:rounded-[28px] overflow-hidden shadow-xl shadow-slate-900/15 border-2 sm:border-4 border-slate-800">
       {/* Top Phone Camera / Speaker notch simulation */}
       <div className="bg-slate-900 px-4 sm:px-6 pt-2 pb-1 flex items-center justify-between text-[11px] text-slate-400 select-none">
         <span className="font-mono">09:41</span>
@@ -211,15 +211,15 @@ export const WhatsAppSimulator: React.FC<WhatsAppSimulatorProps> = ({
         </div>
       </div>
 
-      {/* WhatsApp App Header */}
-      <div className="bg-emerald-800 text-white px-4 py-2.5 flex items-center justify-between shadow-xs z-10">
+      {/* WhatsApp App Header - Refined deep teal */}
+      <div className="bg-[#0e483e] text-white px-4 py-2.5 flex items-center justify-between shadow-xs z-10">
         <div className="flex items-center gap-2.5">
           {/* Avatar */}
           <div className="relative">
-            <div className="w-9 h-9 rounded-full bg-emerald-600 flex items-center justify-center font-bold text-sm shadow-xs border border-emerald-400/30">
+            <div className="w-9 h-9 rounded-full bg-teal-800 flex items-center justify-center font-bold text-sm shadow-xs border border-teal-600/30">
               👁️
             </div>
-            <div className="absolute bottom-0 right-0 w-2.5 h-2.5 rounded-full bg-emerald-300 ring-2 ring-emerald-800" />
+            <div className="absolute bottom-0 right-0 w-2.5 h-2.5 rounded-full bg-teal-300 ring-2 ring-[#0e483e]" />
           </div>
 
           <div>
@@ -234,12 +234,12 @@ export const WhatsAppSimulator: React.FC<WhatsAppSimulatorProps> = ({
                   'OptiRoute — Eye Triage'
                 )}
               </span>
-              <span className="text-[10px] bg-emerald-900/80 text-emerald-200 px-1.5 py-0.2 rounded font-normal">
+              <span className="text-[10px] bg-teal-950/80 text-teal-200 px-1.5 py-0.2 rounded font-normal">
                 {language === 'ar' ? 'موثّق' : 'Verified'}
               </span>
             </div>
-            <span className="text-[10px] text-emerald-100 flex items-center gap-1">
-              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+            <span className="text-[10px] text-teal-100/90 flex items-center gap-1">
+              <span className="w-1.5 h-1.5 rounded-full bg-teal-300" />
               <span>{language === 'ar' ? 'متصل الآن (تجريبي)' : 'Online (Simulated)'}</span>
             </span>
           </div>
@@ -250,8 +250,8 @@ export const WhatsAppSimulator: React.FC<WhatsAppSimulatorProps> = ({
           {/* City / Location button */}
           <button
             onClick={() => setShowLocationModal(!showLocationModal)}
-            className="p-1.5 text-emerald-100 hover:text-white hover:bg-emerald-700/60 rounded-full transition-colors"
-            title={language === 'ar' ? 'اختيار الموقع الجغرافي' : 'Select Location'}
+            className="p-1.5 text-teal-100 hover:text-white hover:bg-teal-700/60 rounded-full transition-colors cursor-pointer"
+            title={language === 'ar' ? 'اختيار المدينة التوجيهية' : 'Select Routing City'}
             aria-label="Location"
           >
             <MapPin className="w-4 h-4" />
@@ -260,8 +260,13 @@ export const WhatsAppSimulator: React.FC<WhatsAppSimulatorProps> = ({
           {/* Reset Action */}
           <button
             onClick={onResetSession}
-            className="p-1.5 text-emerald-100 hover:text-white hover:bg-emerald-700/60 rounded-full transition-colors"
-            title={language === 'ar' ? 'بدء جلسة جديدة (مع حفظ السابقة)' : 'New Session (Preserves Previous)'}
+            disabled={isLoading}
+            className="p-1.5 text-teal-100 hover:text-white hover:bg-teal-700/60 rounded-full transition-colors disabled:opacity-40 cursor-pointer"
+            title={
+              language === 'ar'
+                ? 'إعادة تعيين المحادثة وبدء جلسة جديدة'
+                : 'Reset chat & start fresh session'
+            }
             aria-label="Reset session"
           >
             <RotateCcw className="w-4 h-4" />
@@ -271,9 +276,9 @@ export const WhatsAppSimulator: React.FC<WhatsAppSimulatorProps> = ({
 
       {/* Location Dropdown Ribbon */}
       {showLocationModal && (
-        <div className="bg-emerald-900 text-white text-xs px-3 py-2 border-b border-emerald-700 flex items-center justify-between animate-fadeIn">
+        <div className="bg-[#0b3b33] text-white text-xs px-3 py-2 border-b border-teal-900 flex items-center justify-between">
           <div className="flex items-center gap-1.5">
-            <Compass className="w-3.5 h-3.5 text-emerald-300 shrink-0" />
+            <Compass className="w-3.5 h-3.5 text-teal-300 shrink-0" />
             <span>{language === 'ar' ? 'المدينة التوجيهية:' : 'Routing City:'}</span>
             <select
               value={selectedCity}
@@ -281,7 +286,7 @@ export const WhatsAppSimulator: React.FC<WhatsAppSimulatorProps> = ({
                 onSelectCity(e.target.value);
                 setShowLocationModal(false);
               }}
-              className="bg-emerald-800 text-white rounded px-2 py-0.5 border border-emerald-600 text-xs"
+              className="bg-teal-900 text-white rounded px-2 py-0.5 border border-teal-700 text-xs"
             >
               {DEMO_CITIES.map((c) => (
                 <option key={c.id} value={c.nameEn}>
@@ -293,7 +298,7 @@ export const WhatsAppSimulator: React.FC<WhatsAppSimulatorProps> = ({
 
           <button
             onClick={handleBrowserLocation}
-            className="text-[11px] underline text-emerald-200 hover:text-white"
+            className="text-[11px] underline text-teal-200 hover:text-white cursor-pointer"
           >
             {language === 'ar' ? 'استخدام GPS' : 'Use GPS'}
           </button>
@@ -307,7 +312,7 @@ export const WhatsAppSimulator: React.FC<WhatsAppSimulatorProps> = ({
       <div
         ref={chatScrollContainerRef}
         onScroll={handleChatScroll}
-        className="flex-1 bg-[#efeae2] overflow-y-auto p-3.5 space-y-3 relative"
+        className="flex-1 bg-[#f8f9fa] overflow-y-auto p-3.5 space-y-3 relative"
       >
         {/* Date header */}
         <div className="flex justify-center my-1">
@@ -331,19 +336,19 @@ export const WhatsAppSimulator: React.FC<WhatsAppSimulatorProps> = ({
 
           if (isSystem) {
             return (
-              <div key={msg.id} className="flex justify-center my-2.5">
-                <div className="bg-amber-50/90 text-amber-950 border border-amber-200 rounded-xl p-3.5 max-w-[92%] text-sm shadow-2xs space-y-2">
-                  <div className="flex items-center gap-1.5 font-bold text-amber-900 text-xs sm:text-sm">
-                    <ShieldCheck className="w-4 h-4 text-amber-700 shrink-0" />
+              <div key={msg.id} className="flex justify-center my-2.5 animate-msg-entry">
+                <div className="bg-white text-slate-800 border border-slate-200/90 rounded-2xl p-4 max-w-[92%] shadow-xs space-y-2.5">
+                  <div className="flex items-center gap-1.5 font-bold text-slate-900 text-xs sm:text-sm">
+                    <ShieldCheck className="w-4 h-4 text-teal-700 shrink-0" />
                     <span>{language === 'ar' ? 'إشعار الموافقة الطبية' : 'Clinical Consent Notice'}</span>
                   </div>
-                  <p className="whitespace-pre-line leading-relaxed text-[14px]">
+                  <p className="whitespace-pre-line leading-relaxed text-[14px] text-slate-700">
                     {msg.text}
                   </p>
 
                   {/* Queued scenario pending consent banner */}
                   {queuedScenarioTitle && !session.consentGiven && session.status === 'AWAITING_CONSENT' && (
-                    <div className="bg-teal-100/90 text-teal-950 p-2 rounded-lg border border-teal-300 text-[11px] font-semibold flex items-center gap-1.5">
+                    <div className="bg-teal-50 text-teal-900 p-2.5 rounded-xl border border-teal-200 text-[11px] font-semibold flex items-center gap-1.5">
                       <span>📌</span>
                       <span>
                         {language === 'ar'
@@ -355,15 +360,15 @@ export const WhatsAppSimulator: React.FC<WhatsAppSimulatorProps> = ({
 
                   {/* Consent action buttons */}
                   {msg.quickReplies && !session.consentGiven && session.status === 'AWAITING_CONSENT' && (
-                    <div className="flex flex-col gap-1.5 pt-2 border-t border-amber-200">
+                    <div className="flex flex-col gap-1.5 pt-2 border-t border-slate-100">
                       {msg.quickReplies.map((qr) => (
                         <button
                           key={qr.id}
                           onClick={() => handleQuickReplyClick(qr)}
-                          className={`w-full py-1.5 px-3 rounded-lg text-xs font-semibold transition-colors ${
+                          className={`w-full py-2 px-3.5 rounded-xl text-xs font-semibold transition-colors cursor-pointer ${
                             qr.value === 'CONSENT_GRANTED'
-                              ? 'bg-teal-700 hover:bg-teal-800 text-white shadow-2xs'
-                              : 'bg-slate-200 hover:bg-slate-300 text-slate-800'
+                              ? 'bg-teal-700 hover:bg-teal-800 text-white shadow-xs'
+                              : 'bg-slate-100 hover:bg-slate-200 text-slate-700'
                           }`}
                         >
                           {language === 'ar' ? qr.labelAr : qr.labelEn}
@@ -489,18 +494,187 @@ export const WhatsAppSimulator: React.FC<WhatsAppSimulatorProps> = ({
             const previewText = summaryPreviewItems.slice(0, 3).join(' • ');
 
             return (
-              <div key={msg.id} className="flex justify-start my-2 max-w-[92%]">
-                <div
-                  className={`rounded-2xl p-3.5 shadow-xs space-y-2.5 w-full border ${
-                    isEmergency
-                      ? 'bg-rose-50/95 border-rose-300 text-rose-950'
-                      : isUrgent
-                      ? 'bg-amber-50/95 border-amber-300 text-amber-950'
-                      : 'bg-teal-50/95 border-teal-300 text-teal-950'
-                  }`}
-                >
-                  {/* Collapsible Section: ملخص إجاباتك / Your answers */}
-                  <div className="bg-white/95 rounded-xl border border-slate-200 overflow-hidden text-slate-800 shadow-2xs">
+              <div key={msg.id} className="flex justify-start my-2 max-w-[94%] sm:max-w-[92%] animate-msg-entry">
+                <div className="bg-white rounded-2xl p-4 shadow-xs border border-slate-200/90 space-y-3.5 w-full text-slate-900">
+                  {/* 1. Urgency Badge - Compact with icon and clear urgency text */}
+                  <div className="flex items-center justify-between pb-3 border-b border-slate-100">
+                    <div className="flex items-center gap-2">
+                      <div
+                        className={`p-1.5 rounded-lg shrink-0 ${
+                          isEmergency
+                            ? 'bg-rose-50 text-rose-700 border border-rose-200/90'
+                            : isUrgent
+                            ? 'bg-amber-50 text-amber-800 border border-amber-200/90'
+                            : 'bg-teal-50 text-teal-800 border border-teal-200/90'
+                        }`}
+                      >
+                        {isEmergency ? (
+                          <AlertTriangle className="w-4 h-4 text-rose-600" />
+                        ) : isUrgent ? (
+                          <AlertTriangle className="w-4 h-4 text-amber-600" />
+                        ) : (
+                          <ShieldCheck className="w-4 h-4 text-teal-600" />
+                        )}
+                      </div>
+                      <div>
+                        <span className="text-[10px] uppercase font-bold text-slate-400 tracking-wider block leading-tight">
+                          {language === 'ar' ? 'نتيجة الفرز الاسترشادي' : 'Triage Assessment'}
+                        </span>
+                        <span
+                          className={`font-bold text-sm sm:text-base leading-tight block ${
+                            isEmergency
+                              ? 'text-rose-700'
+                              : isUrgent
+                              ? 'text-amber-800'
+                              : 'text-teal-800'
+                          }`}
+                        >
+                          {isEmergency
+                            ? language === 'ar'
+                              ? 'طارئ (طوارئ عيون فورية)'
+                              : 'EMERGENCY (Immediate Eye Care)'
+                            : isUrgent
+                            ? language === 'ar'
+                              ? 'عاجل (فحص خلال 24 ساعة)'
+                              : 'URGENT (Same-Day Evaluation)'
+                            : language === 'ar'
+                            ? 'غير عاجل (رعاية أولية)'
+                            : 'NON-URGENT (Primary Care)'}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Immediate Action (if emergency chemical splash / trauma) */}
+                  {!dec.isRetainedEmergency && (dec.immediateActionTextAr || dec.immediateActionTextEn) && (
+                    <div className="bg-rose-50 text-rose-950 p-2.5 rounded-xl border border-rose-200 text-xs leading-relaxed font-semibold">
+                      {language === 'ar' ? dec.immediateActionTextAr : dec.immediateActionTextEn}
+                    </div>
+                  )}
+
+                  {/* 2. Brief Reason */}
+                  <div className="space-y-1">
+                    <span className="text-[10px] uppercase font-bold text-slate-500 tracking-wider block">
+                      {language === 'ar' ? 'سبب التقييم ومطابقة الأعراض:' : 'Assessment Reason:'}
+                    </span>
+                    <p className="text-[13px] leading-relaxed text-slate-700">
+                      {dec.isRetainedEmergency ? (
+                        <span className="text-amber-900 font-medium">
+                          {language === 'ar'
+                            ? dec.retainedEmergencyReasonAr ||
+                              'تم تحديث إجابتك. بقيت توصية الطوارئ احترازيًا لأنها صدرت بناءً على إجابة سابقة، وفق سياسة النموذج التجريبي.'
+                            : dec.retainedEmergencyReasonEn ||
+                              'Your answer has been updated. The emergency recommendation was retained as a safety precaution because it was issued based on a previous answer, per demo safety policy.'}
+                        </span>
+                      ) : dec.ruleResult?.matchedFlags && dec.ruleResult.matchedFlags.length > 0 ? (
+                        <span>
+                          {language === 'ar'
+                            ? `تم رصد مؤشرات حرجة: ${dec.ruleResult.matchedFlags.map((f) => f.titleAr).join('، ')}.`
+                            : `Critical indicators detected: ${dec.ruleResult.matchedFlags.map((f) => f.titleEn).join(', ')}.`}
+                        </span>
+                      ) : dec.decisionSource === 'CONSERVATIVE_FALLBACK' ? (
+                        <span>
+                          {language === 'ar'
+                            ? 'نظراً لعدم اكتمال أو غموض بعض البيانات الواردة في الوصف، يوصى بالفحص الطبي في اليوم نفسه كإجراء احترازي لسلامتك.'
+                            : 'Due to insufficient or unclear information in the description, a same-day medical assessment is recommended as a safety precaution.'}
+                        </span>
+                      ) : (
+                        <span>
+                          {language === 'ar'
+                            ? dec.finalUrgency === 'URGENT'
+                              ? 'أعراض عاجلة تتطلب فحصاً تخصصياً في اليوم نفسه بناءً على استمرار الألم أو حساسية الضوء.'
+                              : 'أعراض سطحية مستقرة لا تشير إلى علامات خطورة حادة.'
+                            : dec.finalUrgency === 'URGENT'
+                            ? 'Urgent symptoms warrant same-day specialist assessment based on persistent pain or light sensitivity.'
+                            : 'Superficial, stable symptoms with no acute red-flag indicators.'}
+                        </span>
+                      )}
+                    </p>
+                  </div>
+
+                  {/* 3. Next Action */}
+                  <div className="space-y-1 pt-2 border-t border-slate-100">
+                    <span className="text-[10px] uppercase font-bold text-slate-500 tracking-wider block">
+                      {language === 'ar' ? 'الخطوة التالية الموصى بها:' : 'Recommended Action:'}
+                    </span>
+                    <p className="text-[13px] leading-relaxed text-slate-900 font-medium">
+                      {language === 'ar' ? dec.guidanceTextAr : dec.guidanceTextEn}
+                    </p>
+                  </div>
+
+                  {/* 4. Routed Facility Card or Absence Notice */}
+                  {fac ? (
+                    <div className="bg-slate-50/80 p-3 rounded-xl border border-slate-200 text-xs space-y-2 shadow-2xs">
+                      <div className="flex items-start justify-between gap-1">
+                        <div>
+                          <span className="text-[10px] text-teal-800 font-semibold block">
+                            {language === 'ar' ? 'الجهة الموصى بالتوجه إليها (افتراضية):' : 'Recommended Demo Facility:'}
+                          </span>
+                          <span className="font-bold text-slate-900 text-xs sm:text-sm block">
+                            {language === 'ar' ? fac.nameAr : fac.nameEn}
+                          </span>
+                          <span className="text-[11px] text-slate-500 font-medium block">
+                            {language === 'ar' ? fac.typeAr : fac.typeEn}
+                          </span>
+                        </div>
+                        <span className="text-[10px] font-mono bg-white border border-slate-200 text-slate-700 px-2 py-0.5 rounded shrink-0">
+                          {fac.isCalculatedDistance
+                            ? `${fac.distanceKm} km (GPS)`
+                            : language === 'ar'
+                            ? `عينة: ~${fac.distanceKm} كم`
+                            : `Sample: ~${fac.distanceKm} km`}
+                        </span>
+                      </div>
+
+                      <div className="text-[11px] text-slate-600 flex items-center gap-1.5">
+                        <Clock className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                        <span>{language === 'ar' ? fac.operatingHoursAr : fac.operatingHoursEn}</span>
+                      </div>
+
+                      {/* Direct Action Buttons */}
+                      <div className="flex items-center gap-2 pt-1 border-t border-slate-200/60">
+                        <button
+                          type="button"
+                          disabled
+                          title={language === 'ar' ? 'سجل تجريبي افتراضي — الاتصال معطل' : 'Fictional demo record — telephone dialing disabled'}
+                          className="flex-1 inline-flex items-center justify-center gap-1 py-1.5 bg-slate-100 text-slate-400 cursor-not-allowed rounded-lg text-[11px] font-semibold"
+                        >
+                          <PhoneCall className="w-3 h-3 text-slate-400" />
+                          <span>{language === 'ar' ? 'هاتف (معطل تجريبياً)' : 'Phone (Disabled)'}</span>
+                        </button>
+
+                        <button
+                          onClick={() => {
+                            window.open(
+                              `https://maps.google.com/?q=${fac.coordinates.lat},${fac.coordinates.lng}`,
+                              '_blank'
+                            );
+                          }}
+                          className="flex-1 inline-flex items-center justify-center gap-1 py-1.5 bg-white hover:bg-slate-50 border border-slate-200 text-slate-800 rounded-lg text-[11px] font-semibold transition-colors shadow-2xs"
+                        >
+                          <ExternalLink className="w-3 h-3 text-teal-700" />
+                          <span>{language === 'ar' ? 'خريطة الموقع' : 'Directions'}</span>
+                        </button>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="bg-amber-50/90 p-2.5 rounded-xl border border-amber-200 text-xs space-y-1 text-amber-900">
+                      <div className="flex items-center gap-1.5 font-bold text-amber-800">
+                        <AlertTriangle className="w-3.5 h-3.5 text-amber-600 shrink-0" />
+                        <span>
+                          {language === 'ar' ? 'تنبيه توجيه المنشآت التجريبية' : 'Demo Facility Routing Notice'}
+                        </span>
+                      </div>
+                      <p className="text-[11px] leading-relaxed">
+                        {language === 'ar'
+                          ? msg.routingExplanationAr || session.routingExplanationAr || 'لا توجد منشأة تجريبية مناسبة في هذه المدينة.'
+                          : msg.routingExplanationEn || session.routingExplanationEn || 'No suitable demo facility found in the selected city.'}
+                      </p>
+                    </div>
+                  )}
+
+                  {/* 5. Collapsible Section: ملخص إجاباتك / Your answers */}
+                  <div className="bg-slate-50/70 rounded-xl border border-slate-200/80 overflow-hidden text-slate-800">
                     <button
                       type="button"
                       onClick={() =>
@@ -509,7 +683,7 @@ export const WhatsAppSimulator: React.FC<WhatsAppSimulatorProps> = ({
                           [msg.id]: !isSummaryOpen,
                         }))
                       }
-                      className="w-full flex items-center justify-between p-2.5 bg-slate-50 hover:bg-slate-100 transition-colors text-left rtl:text-right"
+                      className="w-full flex items-center justify-between p-2.5 bg-slate-50/90 hover:bg-slate-100 transition-colors text-left rtl:text-right cursor-pointer"
                     >
                       <div className="flex items-center gap-2 min-w-0 pr-2 rtl:pr-0 rtl:pl-2">
                         <CheckCheck className="w-4 h-4 text-teal-700 shrink-0" />
@@ -524,7 +698,7 @@ export const WhatsAppSimulator: React.FC<WhatsAppSimulatorProps> = ({
                           )}
                         </div>
                       </div>
-                      <div className="flex items-center gap-1.5 text-xs text-teal-800 font-semibold bg-teal-50 hover:bg-teal-100 px-2 py-1 rounded-md border border-teal-200 shrink-0 transition-colors">
+                      <div className="flex items-center gap-1.5 text-xs text-teal-800 font-semibold bg-white hover:bg-teal-50 px-2 py-1 rounded-md border border-teal-200/80 shrink-0 transition-colors shadow-2xs">
                         <span>{isSummaryOpen ? (language === 'ar' ? 'طي الملخص' : 'Collapse') : (language === 'ar' ? 'عرض التفاصيل' : 'Expand')}</span>
                         {isSummaryOpen ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
                       </div>
@@ -992,162 +1166,7 @@ export const WhatsAppSimulator: React.FC<WhatsAppSimulatorProps> = ({
                     )}
                   </div>
 
-                  {/* Urgency Badge */}
-                  <div className="flex items-center justify-between border-b border-black/10 pb-2">
-                    <div className="flex items-center gap-1.5">
-                      {isEmergency ? (
-                        <AlertTriangle className="w-5 h-5 text-rose-600 shrink-0 animate-bounce" />
-                      ) : (
-                        <ShieldCheck className="w-5 h-5 text-teal-700 shrink-0" />
-                      )}
-                      <div>
-                        <span className="text-[10px] uppercase font-bold tracking-wider block opacity-75">
-                          {language === 'ar' ? 'نتيجة الفرز الاسترشادي' : 'Triage Assessment'}
-                        </span>
-                        <span className="font-extrabold text-sm leading-none">
-                          {isEmergency
-                            ? language === 'ar'
-                              ? 'طارئ (طوارئ عيون فورية) 🚨'
-                              : 'EMERGENCY (Immediate Care) 🚨'
-                            : isUrgent
-                            ? language === 'ar'
-                              ? 'عاجل (تقييم خلال اليوم) ⚠️'
-                              : 'URGENT (Same-Day Evaluation) ⚠️'
-                            : language === 'ar'
-                            ? 'غير عاجل (رعاية أولية) ℹ️'
-                            : 'NON-URGENT (Primary Care) ℹ️'}
-                        </span>
-                      </div>
-                    </div>
-                  </div>
 
-                  {/* Immediate Action if chemical splash / trauma (only if confirmed or not negated) */}
-                  {!dec.isRetainedEmergency && (dec.immediateActionTextAr || dec.immediateActionTextEn) && (
-                    <div className="bg-rose-100/90 text-rose-950 p-2.5 rounded-xl border border-rose-200 text-xs leading-relaxed font-semibold">
-                      {language === 'ar' ? dec.immediateActionTextAr : dec.immediateActionTextEn}
-                    </div>
-                  )}
-
-                  {/* Grounded Clinical Explanation */}
-                  <div className="bg-white/80 p-2.5 rounded-xl border border-black/5 text-xs space-y-1">
-                    <span className="text-[10px] uppercase font-bold text-slate-500 block">
-                      {language === 'ar' ? 'سبب التقييم ومطابقة الأعراض:' : 'Assessment Reason:'}
-                    </span>
-                    <p className="text-xs leading-relaxed text-slate-800">
-                      {dec.isRetainedEmergency ? (
-                        <span className="text-amber-900 font-medium">
-                          {language === 'ar'
-                            ? dec.retainedEmergencyReasonAr ||
-                              'تم تحديث إجابتك. بقيت توصية الطوارئ احترازيًا لأنها صدرت بناءً على إجابة سابقة، وفق سياسة النموذج التجريبي.'
-                            : dec.retainedEmergencyReasonEn ||
-                              'Your answer has been updated. The emergency recommendation was retained as a safety precaution because it was issued based on a previous answer, per demo safety policy.'}
-                        </span>
-                      ) : dec.ruleResult?.matchedFlags && dec.ruleResult.matchedFlags.length > 0 ? (
-                        <span>
-                          {language === 'ar'
-                            ? `تم رصد مؤشرات حرجة: ${dec.ruleResult.matchedFlags.map((f) => f.titleAr).join('، ')}.`
-                            : `Critical indicators detected: ${dec.ruleResult.matchedFlags.map((f) => f.titleEn).join(', ')}.`}
-                        </span>
-                      ) : dec.decisionSource === 'CONSERVATIVE_FALLBACK' ? (
-                        <span>
-                          {language === 'ar'
-                            ? 'نظراً لعدم اكتمال أو غموض بعض البيانات الواردة في الوصف، يوصى بالفحص الطبي في اليوم نفسه كإجراء احترازي لسلامتك.'
-                            : 'Due to insufficient or unclear information in the description, a same-day medical assessment is recommended as a safety precaution.'}
-                        </span>
-                      ) : (
-                        <span>
-                          {language === 'ar'
-                            ? dec.finalUrgency === 'URGENT'
-                              ? 'أعراض عاجلة تتطلب فحصاً تخصصياً في اليوم نفسه بناءً على استمرار الألم أو حساسية الضوء.'
-                              : 'أعراض سطحية مستقرة لا تشير إلى علامات خطورة حادة.'
-                            : dec.finalUrgency === 'URGENT'
-                            ? 'Urgent symptoms warrant same-day specialist assessment based on persistent pain or light sensitivity.'
-                            : 'Superficial, stable symptoms with no acute red-flag indicators.'}
-                        </span>
-                      )}
-                    </p>
-                  </div>
-
-                  {/* Next Step Guidance */}
-                  <div className="p-2.5 rounded-xl bg-white/60 border border-black/5 space-y-1">
-                    <span className="text-[10px] uppercase font-bold text-slate-500 block">
-                      {language === 'ar' ? 'الخطوة التالية الموصى بها:' : 'Recommended Next Step:'}
-                    </span>
-                    <p className="text-xs leading-relaxed text-slate-800 font-medium">
-                      {language === 'ar' ? dec.guidanceTextAr : dec.guidanceTextEn}
-                    </p>
-                  </div>
-
-                  {/* Routed Facility Card or Absence Notice */}
-                  {fac ? (
-                    <div className="bg-white/95 p-2.5 rounded-xl border border-slate-200 text-xs space-y-1.5 shadow-2xs">
-                      <div className="flex items-start justify-between gap-1">
-                        <div>
-                          <span className="text-[10px] text-teal-800 font-semibold block">
-                            {language === 'ar' ? 'الجهة الموصى بالتوجه إليها (افتراضية):' : 'Recommended Facility (Simulated):'}
-                          </span>
-                          <span className="font-bold text-slate-900 text-xs block">
-                            {language === 'ar' ? fac.nameAr : fac.nameEn}
-                          </span>
-                          <span className="text-[10px] text-slate-500 font-medium block">
-                            {language === 'ar' ? fac.typeAr : fac.typeEn}
-                          </span>
-                        </div>
-                        <span className="text-[10px] font-mono bg-slate-100 text-slate-700 px-1.5 py-0.5 rounded shrink-0">
-                          {fac.isCalculatedDistance
-                            ? `${fac.distanceKm} km (GPS)`
-                            : language === 'ar'
-                            ? `عينة: ~${fac.distanceKm} كم`
-                            : `Sample: ~${fac.distanceKm} km`}
-                        </span>
-                      </div>
-
-                      <div className="text-[11px] text-slate-600 flex items-center gap-1">
-                        <Clock className="w-3 h-3 text-slate-400 shrink-0" />
-                        <span>{language === 'ar' ? fac.operatingHoursAr : fac.operatingHoursEn}</span>
-                      </div>
-
-                      {/* Direct Action Buttons */}
-                      <div className="flex items-center gap-2 pt-1 border-t border-slate-100">
-                        <button
-                          type="button"
-                          disabled
-                          title={language === 'ar' ? 'سجل تجريبي افتراضي — الاتصال معطل' : 'Fictional demo record — telephone dialing disabled'}
-                          className="flex-1 inline-flex items-center justify-center gap-1 py-1.5 bg-slate-100 text-slate-500 cursor-not-allowed rounded-lg text-[11px] font-semibold"
-                        >
-                          <PhoneCall className="w-3 h-3 text-slate-400" />
-                          <span>{language === 'ar' ? 'هاتف (معطل تجريبياً)' : 'Phone (Disabled)'}</span>
-                        </button>
-
-                        <button
-                          onClick={() => {
-                            window.open(
-                              `https://maps.google.com/?q=${fac.coordinates.lat},${fac.coordinates.lng}`,
-                              '_blank'
-                            );
-                          }}
-                          className="flex-1 inline-flex items-center justify-center gap-1 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-800 rounded-lg text-[11px] font-semibold transition-colors"
-                        >
-                          <ExternalLink className="w-3 h-3" />
-                          <span>{language === 'ar' ? 'خريطة الموقع' : 'Directions'}</span>
-                        </button>
-                      </div>
-                    </div>
-                  ) : (
-                    <div className="bg-amber-50/95 p-2.5 rounded-xl border border-amber-200 text-xs space-y-1 text-amber-900">
-                      <div className="flex items-center gap-1.5 font-bold text-amber-800">
-                        <AlertTriangle className="w-3.5 h-3.5 text-amber-600 shrink-0" />
-                        <span>
-                          {language === 'ar' ? 'تنبيه توجيه المنشآت التجريبية' : 'Demo Facility Routing Notice'}
-                        </span>
-                      </div>
-                      <p className="text-[11px] leading-relaxed">
-                        {language === 'ar'
-                          ? msg.routingExplanationAr || session.routingExplanationAr || 'لا توجد منشأة تجريبية مناسبة في هذه المدينة.'
-                          : msg.routingExplanationEn || session.routingExplanationEn || 'No suitable demo facility found in the selected city.'}
-                      </p>
-                    </div>
-                  )}
 
                   {/* Collapsible Technical Rules Section */}
                   <div className="pt-1 border-t border-black/10">
@@ -1232,15 +1251,32 @@ export const WhatsAppSimulator: React.FC<WhatsAppSimulatorProps> = ({
           return (
             <div
               key={msg.id}
-              className={`flex ${isPatient ? 'justify-end' : 'justify-start'} my-2`}
+              className={`flex ${isPatient ? 'justify-end' : 'justify-start'} my-2.5 animate-msg-entry`}
             >
               <div
-                className={`max-w-[85%] rounded-2xl px-3.5 py-2.5 text-sm shadow-2xs relative ${
+                className={`max-w-[85%] rounded-2xl px-3.5 py-2.5 text-sm shadow-2xs relative border ${
                   isPatient
-                    ? 'bg-[#d9fdd3] text-slate-900 rounded-tr-xs'
-                    : 'bg-white text-slate-900 rounded-tl-xs'
+                    ? 'bg-[#e7f7e9] border-[#d0eed4] text-slate-900 rounded-tr-xs rtl:rounded-tr-2xl rtl:rounded-tl-xs'
+                    : 'bg-white border-slate-200/80 text-slate-900 rounded-tl-xs rtl:rounded-tl-2xl rtl:rounded-tr-xs'
                 }`}
               >
+                {/* Subtle sender label to distinguish patient vs assistant without solely relying on color */}
+                <div className="flex items-center gap-1.5 mb-1 select-none">
+                  <span
+                    className={`text-[10px] font-bold uppercase tracking-wider ${
+                      isPatient ? 'text-teal-800' : 'text-slate-500'
+                    }`}
+                  >
+                    {isPatient
+                      ? language === 'ar'
+                        ? 'أنت (المستخدم)'
+                        : 'You'
+                      : language === 'ar'
+                      ? 'OptiRoute المساعد الطبي'
+                      : 'OptiRoute Clinical'}
+                  </span>
+                </div>
+
                 {/* Voice Note message bubble */}
                 {msg.type === 'voice' ? (
                   <AudioPlayerSim
@@ -1250,7 +1286,9 @@ export const WhatsAppSimulator: React.FC<WhatsAppSimulatorProps> = ({
                     audioUrl={msg.audioUrl}
                   />
                 ) : (
-                  <p className="whitespace-pre-line leading-relaxed text-[14px] sm:text-[15px] font-normal">{msg.text}</p>
+                  <p className="whitespace-pre-line leading-relaxed text-[14px] sm:text-[15px] font-normal text-slate-800">
+                    {msg.text}
+                  </p>
                 )}
 
                 {/* Quick replies if any attached to bot question */}
@@ -1270,10 +1308,10 @@ export const WhatsAppSimulator: React.FC<WhatsAppSimulatorProps> = ({
                           onClick={() => handleQuickReplyClick(qr, msg.id)}
                           className={`py-1.5 px-3 rounded-full text-xs font-semibold transition-all ${
                             isSelected
-                              ? 'bg-emerald-700 text-white border border-emerald-800 shadow-2xs cursor-default font-bold'
+                              ? 'bg-teal-700 text-white border border-teal-800 shadow-2xs cursor-default font-bold'
                               : isDisabled
                               ? 'bg-slate-100 text-slate-400 border border-slate-200 cursor-not-allowed opacity-60'
-                              : 'bg-emerald-50 hover:bg-emerald-100 text-emerald-900 border border-emerald-200 cursor-pointer shadow-2xs'
+                              : 'bg-teal-50 hover:bg-teal-100 text-teal-900 border border-teal-200 cursor-pointer shadow-2xs'
                           }`}
                         >
                           {isSelected && <span className="mr-1 ml-1 text-[11px]">✓</span>}
@@ -1285,14 +1323,14 @@ export const WhatsAppSimulator: React.FC<WhatsAppSimulatorProps> = ({
                 )}
 
                 {/* Timestamp & read receipts */}
-                <div className="text-[10px] text-slate-400 mt-1 flex items-center justify-end gap-1 select-none">
+                <div className="text-[10px] text-slate-400 mt-1.5 flex items-center justify-end gap-1 select-none">
                   <span>
                     {new Date(msg.timestamp).toLocaleTimeString([], {
                       hour: '2-digit',
                       minute: '2-digit',
                     })}
                   </span>
-                  {isPatient && <CheckCheck className="w-3.5 h-3.5 text-sky-500" />}
+                  {isPatient && <CheckCheck className="w-3.5 h-3.5 text-teal-600" />}
                 </div>
               </div>
             </div>
@@ -1358,17 +1396,17 @@ export const WhatsAppSimulator: React.FC<WhatsAppSimulatorProps> = ({
       )}
 
       {/* Bottom Message Input Bar */}
-      <div className="bg-[#f0f2f5] px-3 py-2 border-t border-slate-200">
+      <div className="bg-slate-50 px-3.5 py-2.5 border-t border-slate-200/90">
         <form onSubmit={handleSendText} className="flex items-center gap-2">
           {/* Voice note trigger button */}
           <button
             type="button"
             onClick={handleStartSimulatedVoice}
             disabled={!session.consentGiven || isLoading}
-            className={`p-2 rounded-full transition-colors shrink-0 ${
+            className={`p-2 rounded-full transition-colors shrink-0 cursor-pointer ${
               isRecordingSim
-                ? 'bg-rose-600 text-white'
-                : 'text-slate-600 hover:text-slate-900 hover:bg-slate-200 disabled:opacity-40'
+                ? 'bg-rose-600 text-white shadow-xs'
+                : 'text-slate-600 hover:text-slate-900 hover:bg-slate-200/80 disabled:opacity-40 disabled:cursor-not-allowed'
             }`}
             title={language === 'ar' ? 'تسجيل صوتي تجريبي' : 'Simulated Voice Note'}
             aria-label="Voice Note"
@@ -1391,14 +1429,14 @@ export const WhatsAppSimulator: React.FC<WhatsAppSimulatorProps> = ({
                 ? 'اكتب وصفاً للأعراض هنا...'
                 : 'Describe eye symptoms here...'
             }
-            className="flex-1 bg-white rounded-full px-4 py-2 text-[14px] border border-slate-300 focus:outline-hidden focus:ring-1 focus:ring-emerald-600 disabled:bg-slate-100 disabled:text-slate-400 placeholder:text-slate-400"
+            className="flex-1 bg-white rounded-full px-4 py-2 text-[14px] border border-slate-300 focus:outline-hidden focus:border-teal-600 focus:ring-2 focus:ring-teal-100 disabled:bg-slate-100 disabled:text-slate-400 placeholder:text-slate-400 shadow-2xs transition-all"
           />
 
           {/* Send Button */}
           <button
             type="submit"
             disabled={!inputText.trim() || !session.consentGiven || isLoading}
-            className="w-8 h-8 rounded-full bg-emerald-700 text-white flex items-center justify-center hover:bg-emerald-800 transition-colors disabled:opacity-40 shrink-0 shadow-2xs"
+            className="w-8.5 h-8.5 rounded-full bg-teal-700 text-white flex items-center justify-center hover:bg-teal-800 active:bg-teal-900 transition-colors disabled:opacity-40 disabled:cursor-not-allowed shrink-0 shadow-2xs cursor-pointer"
             aria-label="Send"
           >
             <Send className="w-4 h-4 rtl:rotate-180" />

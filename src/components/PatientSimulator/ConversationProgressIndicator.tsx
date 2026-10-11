@@ -97,7 +97,7 @@ export const ConversationProgressIndicator: React.FC<ConversationProgressIndicat
     <div
       role="region"
       aria-label={language === 'ar' ? 'مؤشر مراحل المحادثة' : 'Conversation Progress Indicator'}
-      className="bg-slate-50/95 border-b border-slate-200 px-2 sm:px-3 py-1.5 select-none shrink-0 z-10 shadow-2xs"
+      className="bg-white border-b border-slate-200/80 px-2.5 sm:px-3 py-1.5 select-none shrink-0 z-10 shadow-2xs"
     >
       <div
         dir={language === 'ar' ? 'rtl' : 'ltr'}
@@ -116,12 +116,12 @@ export const ConversationProgressIndicator: React.FC<ConversationProgressIndicat
               <div
                 className={`flex items-center gap-1 px-1.5 sm:px-2 py-0.5 rounded-md text-[10px] sm:text-[11px] whitespace-nowrap transition-colors shrink-0 ${
                   isCurrent
-                    ? 'bg-white text-emerald-950 font-bold border border-emerald-500 shadow-2xs ring-1 ring-emerald-500/20'
+                    ? 'bg-white text-teal-950 font-bold border border-teal-600 shadow-2xs ring-1 ring-teal-600/20'
                     : isCompleted
-                    ? 'bg-emerald-50 text-emerald-800 font-semibold border border-emerald-200/80'
+                    ? 'bg-teal-50 text-teal-800 font-semibold border border-teal-200/80'
                     : isSkipped
                     ? 'bg-slate-100 text-slate-500 font-normal border border-dashed border-slate-300'
-                    : 'bg-slate-50/60 text-slate-400 font-normal border border-slate-200/50'
+                    : 'bg-slate-50/70 text-slate-400 font-normal border border-slate-200/50'
                 }`}
                 title={
                   isSkipped
@@ -144,12 +144,12 @@ export const ConversationProgressIndicator: React.FC<ConversationProgressIndicat
                 {/* State marker icon/dot */}
                 {isCompleted && (
                   <Check
-                    className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-emerald-600 shrink-0"
+                    className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-teal-600 shrink-0"
                     strokeWidth={2.5}
                   />
                 )}
                 {isCurrent && (
-                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-600 shrink-0 animate-pulse" />
+                  <span className="w-1.5 h-1.5 rounded-full bg-teal-600 shrink-0" />
                 )}
                 {isSkipped && (
                   <Minus className="w-2.5 h-2.5 text-slate-400 shrink-0" strokeWidth={2} />
@@ -180,7 +180,7 @@ export const ConversationProgressIndicator: React.FC<ConversationProgressIndicat
                 <span
                   aria-hidden="true"
                   className={`text-[10px] sm:text-xs shrink-0 select-none px-0.5 font-mono ${
-                    isCompleted ? 'text-emerald-500' : 'text-slate-300'
+                    isCompleted ? 'text-teal-600' : 'text-slate-300'
                   }`}
                 >
                   {language === 'ar' ? '←' : '→'}

@@ -306,32 +306,32 @@ export default function App() {
           <div className="space-y-2.5 sm:space-y-3 w-full max-w-full min-w-0">
             {/* Top Scenario Banner & Actions */}
             <div className="bg-white rounded-xl border border-slate-200 shadow-2xs p-2.5 sm:p-3 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2.5">
-              <div className="flex items-center gap-2.5 flex-wrap min-w-0">
+              <div className="flex items-center gap-2 flex-wrap min-w-0">
                 <span className="text-xs font-semibold text-slate-500 shrink-0">
                   {language === 'ar' ? 'الحالة الحالية:' : 'Current Case:'}
                 </span>
                 {activeCaseTitle ? (
-                  <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-bold bg-teal-50 text-teal-900 border border-teal-200 truncate max-w-full">
-                    <span>📌</span>
+                  <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-semibold bg-slate-100 text-slate-800 border border-slate-200 truncate max-w-full">
+                    <span className="text-teal-700">📌</span>
                     <span className="truncate">{activeCaseTitle}</span>
                   </span>
                 ) : (
                   <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-medium bg-slate-100 text-slate-700 border border-slate-200">
-                    <span>💬</span>
+                    <span className="text-teal-700">💬</span>
                     <span>{language === 'ar' ? 'محادثة حرة افتراضية' : 'Custom simulated chat'}</span>
                   </span>
                 )}
               </div>
 
-              <div className="flex items-center gap-2 shrink-0 flex-wrap">
-                {/* Try a demo case collapsible toggle */}
+              <div className="flex items-center gap-2 shrink-0 flex-wrap justify-end">
+                {/* PRIMARY ACTION: Try a demo case */}
                 <button
                   type="button"
                   onClick={() => setScenariosOpen(!scenariosOpen)}
-                  className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 border ${
+                  className={`px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 border shadow-xs cursor-pointer ${
                     scenariosOpen
-                      ? 'bg-teal-700 text-white border-teal-800 shadow-2xs'
-                      : 'bg-teal-50 text-teal-800 border-teal-200 hover:bg-teal-100'
+                      ? 'bg-teal-800 text-white border-teal-900 ring-2 ring-teal-600/30'
+                      : 'bg-teal-700 hover:bg-teal-800 text-white border-teal-800'
                   }`}
                   aria-expanded={scenariosOpen}
                 >
@@ -344,19 +344,20 @@ export default function App() {
                   )}
                 </button>
 
-                {/* How was this decision made collapsible toggle */}
+                {/* SECONDARY ACTION 1: Decision details */}
                 <button
                   type="button"
                   onClick={() => setDecisionDrawerOpen(!decisionDrawerOpen)}
-                  className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all flex items-center gap-1.5 border ${
+                  className={`px-2.5 py-1.5 rounded-lg text-xs font-medium transition-colors flex items-center gap-1.5 border cursor-pointer ${
                     decisionDrawerOpen
                       ? 'bg-slate-800 text-white border-slate-900 shadow-2xs'
-                      : 'bg-slate-100 text-slate-700 border-slate-200 hover:bg-slate-200'
+                      : 'bg-white hover:bg-slate-50 text-slate-700 border border-slate-200'
                   }`}
                   aria-expanded={decisionDrawerOpen}
+                  title={language === 'ar' ? 'كيف اتُّخذ القرار؟ (تفاصيل محرك القواعد)' : 'How was this decision made? (Rule engine details)'}
                 >
-                  <HelpCircle className="w-3.5 h-3.5 text-amber-600" />
-                  <span>{language === 'ar' ? 'كيف اتُّخذ القرار؟' : 'How was this decision made?'}</span>
+                  <HelpCircle className="w-3.5 h-3.5 text-slate-500" />
+                  <span>{language === 'ar' ? 'تفاصيل القرار' : 'Decision details'}</span>
                   {decisionDrawerOpen ? (
                     <ChevronUp className="w-3.5 h-3.5" />
                   ) : (
@@ -364,16 +365,16 @@ export default function App() {
                   )}
                 </button>
 
-                {/* Start a new demo button */}
+                {/* SECONDARY ACTION 2: Start a new demo */}
                 <button
                   type="button"
                   onClick={handleResetSession}
                   disabled={isProcessing}
-                  className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-white text-slate-700 border border-slate-300 hover:bg-slate-50 transition-colors flex items-center gap-1.5 shadow-2xs disabled:opacity-50"
+                  className="px-2.5 py-1.5 rounded-lg text-xs font-medium bg-white text-slate-700 border border-slate-200 hover:bg-slate-50 transition-colors flex items-center gap-1.5 shadow-2xs disabled:opacity-50 cursor-pointer disabled:cursor-not-allowed"
                   title={language === 'ar' ? 'بدء تجربة جديدة مع حفظ السابقة' : 'Start a new demo (preserves previous)'}
                 >
                   <RotateCcw className="w-3.5 h-3.5 text-slate-500" />
-                  <span>{language === 'ar' ? 'بدء تجربة جديدة' : 'Start a new demo'}</span>
+                  <span>{language === 'ar' ? 'بدء تجربة جديدة' : 'New demo'}</span>
                 </button>
               </div>
             </div>
