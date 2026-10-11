@@ -8,6 +8,7 @@ import {
 } from '../../types/triage';
 import { DEMO_CITIES } from '../../data/facilities';
 import { AudioPlayerSim } from './AudioPlayerSim';
+import { ConversationProgressIndicator } from './ConversationProgressIndicator';
 import {
   Send,
   Mic,
@@ -298,6 +299,9 @@ export const WhatsAppSimulator: React.FC<WhatsAppSimulatorProps> = ({
           </button>
         </div>
       )}
+
+      {/* Compact Conversation Progress Indicator */}
+      <ConversationProgressIndicator session={session} language={language} />
 
       {/* WhatsApp Chat Wallpaper / Background */}
       <div
