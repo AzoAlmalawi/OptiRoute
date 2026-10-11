@@ -197,7 +197,7 @@ export const WhatsAppSimulator: React.FC<WhatsAppSimulatorProps> = ({
   };
 
   return (
-    <div className="flex flex-col h-[calc(100dvh-140px)] sm:h-[calc(100dvh-155px)] md:h-[calc(100dvh-160px)] min-h-[460px] max-h-[820px] w-full max-w-full sm:max-w-[480px] md:max-w-[620px] lg:max-w-[690px] mx-auto bg-slate-900 rounded-2xl sm:rounded-3xl overflow-hidden shadow-xl border-2 sm:border-4 border-slate-800">
+    <div className="flex flex-col h-[calc(100dvh-80px)] sm:h-[calc(100dvh-95px)] md:h-[calc(100dvh-100px)] min-h-[520px] max-h-[880px] w-full max-w-full sm:max-w-[480px] md:max-w-[620px] lg:max-w-[690px] mx-auto bg-slate-900 rounded-2xl sm:rounded-3xl overflow-hidden shadow-xl border-2 sm:border-4 border-slate-800">
       {/* Top Phone Camera / Speaker notch simulation */}
       <div className="bg-slate-900 px-4 sm:px-6 pt-2 pb-1 flex items-center justify-between text-[11px] text-slate-400 select-none">
         <span className="font-mono">09:41</span>
@@ -327,13 +327,13 @@ export const WhatsAppSimulator: React.FC<WhatsAppSimulatorProps> = ({
 
           if (isSystem) {
             return (
-              <div key={msg.id} className="flex justify-center my-2">
-                <div className="bg-amber-50/90 text-amber-950 border border-amber-200 rounded-xl p-3 max-w-[90%] text-xs shadow-2xs space-y-2">
-                  <div className="flex items-center gap-1.5 font-bold text-amber-900">
+              <div key={msg.id} className="flex justify-center my-2.5">
+                <div className="bg-amber-50/90 text-amber-950 border border-amber-200 rounded-xl p-3.5 max-w-[92%] text-sm shadow-2xs space-y-2">
+                  <div className="flex items-center gap-1.5 font-bold text-amber-900 text-xs sm:text-sm">
                     <ShieldCheck className="w-4 h-4 text-amber-700 shrink-0" />
                     <span>{language === 'ar' ? 'إشعار الموافقة الطبية' : 'Clinical Consent Notice'}</span>
                   </div>
-                  <p className="whitespace-pre-line leading-relaxed text-[11px]">
+                  <p className="whitespace-pre-line leading-relaxed text-[14px]">
                     {msg.text}
                   </p>
 
@@ -378,8 +378,27 @@ export const WhatsAppSimulator: React.FC<WhatsAppSimulatorProps> = ({
             const isUrgent = dec.finalUrgency === 'URGENT';
             const fac = msg.facilityPayload;
 
-            const isSummaryOpen = summaryExpanded[msg.id] ?? true; // Open by default for immediate clarity
+            const isSummaryOpen = summaryExpanded[msg.id] ?? false; // Collapsed by default to avoid crowding the final assessment
             const sym = session.symptoms;
+
+            // Generate a concise preview of confirmed findings or chief symptoms
+            const summaryPreviewItems: string[] = [];
+            if (sym.chemical_exposure === true) summaryPreviewItems.push(language === 'ar' ? 'مادة كيميائية (+)' : 'Chemical splash (+)');
+            if (sym.trauma === true) summaryPreviewItems.push(language === 'ar' ? 'إصابة بالعين (+)' : 'Eye trauma (+)');
+            if (sym.vision_change && sym.vision_change !== 'unknown' && sym.vision_change !== 'none') {
+              summaryPreviewItems.push(language === 'ar' ? `تغير رؤية: ${formatVisionText(sym.vision_change)}` : `Vision: ${formatVisionText(sym.vision_change)}`);
+            }
+            if (sym.pain_level && sym.pain_level !== 'unknown' && sym.pain_level !== 'none') {
+              summaryPreviewItems.push(language === 'ar' ? `ألم: ${formatPainText(sym.pain_level)}` : `Pain: ${formatPainText(sym.pain_level)}`);
+            }
+            if (sym.contact_lens === true) summaryPreviewItems.push(language === 'ar' ? 'عدسات (+)' : 'Lenses (+)');
+            if (sym.light_sensitivity === true) summaryPreviewItems.push(language === 'ar' ? 'حساسية ضوء (+)' : 'Photophobia (+)');
+            if (sym.redness === true) summaryPreviewItems.push(language === 'ar' ? 'احمرار (+)' : 'Redness (+)');
+            if (sym.discharge === true) summaryPreviewItems.push(language === 'ar' ? 'إفرازات (+)' : 'Discharge (+)');
+            if (summaryPreviewItems.length === 0) {
+              summaryPreviewItems.push(language === 'ar' ? 'تم تسجيل وتوثيق إجابات الفرز' : 'Triage answers recorded');
+            }
+            const previewText = summaryPreviewItems.slice(0, 3).join(' • ');
 
             const formatFieldTriState = (val: boolean | null | undefined, labelAr: string, labelEn: string) => {
               if (val === true) {
@@ -477,7 +496,7 @@ export const WhatsAppSimulator: React.FC<WhatsAppSimulatorProps> = ({
                   }`}
                 >
                   {/* Collapsible Section: ملخص إجاباتك / Your answers */}
-                  <div className="bg-white/90 rounded-xl border border-slate-200 overflow-hidden text-slate-800">
+                  <div className="bg-white/95 rounded-xl border border-slate-200 overflow-hidden text-slate-800 shadow-2xs">
                     <button
                       type="button"
                       onClick={() =>
@@ -486,20 +505,29 @@ export const WhatsAppSimulator: React.FC<WhatsAppSimulatorProps> = ({
                           [msg.id]: !isSummaryOpen,
                         }))
                       }
-                      className="w-full flex items-center justify-between p-2.5 bg-slate-50 hover:bg-slate-100 transition-colors text-left rtl:text-right border-b border-slate-200"
+                      className="w-full flex items-center justify-between p-2.5 bg-slate-50 hover:bg-slate-100 transition-colors text-left rtl:text-right"
                     >
-                      <div className="flex items-center gap-1.5 font-bold text-xs text-slate-800">
-                        <CheckCheck className="w-4 h-4 text-teal-700" />
-                        <span>{language === 'ar' ? 'ملخص إجاباتك والأعراض' : 'Your Answers & Symptoms'}</span>
+                      <div className="flex items-center gap-2 min-w-0 pr-2 rtl:pr-0 rtl:pl-2">
+                        <CheckCheck className="w-4 h-4 text-teal-700 shrink-0" />
+                        <div className="min-w-0">
+                          <span className="font-bold text-xs text-slate-900 block leading-tight">
+                            {language === 'ar' ? 'ملخص إجاباتك والأعراض' : 'Your Answers & Symptoms'}
+                          </span>
+                          {!isSummaryOpen && (
+                            <span className="text-[11px] text-slate-500 truncate block font-normal mt-0.5">
+                              {previewText}
+                            </span>
+                          )}
+                        </div>
                       </div>
-                      <div className="flex items-center gap-1 text-[11px] text-slate-500 font-medium">
-                        <span>{isSummaryOpen ? (language === 'ar' ? 'إخفاء' : 'Collapse') : (language === 'ar' ? 'عرض' : 'Expand')}</span>
+                      <div className="flex items-center gap-1.5 text-xs text-teal-800 font-semibold bg-teal-50 hover:bg-teal-100 px-2 py-1 rounded-md border border-teal-200 shrink-0 transition-colors">
+                        <span>{isSummaryOpen ? (language === 'ar' ? 'طي الملخص' : 'Collapse') : (language === 'ar' ? 'عرض التفاصيل' : 'Expand')}</span>
                         {isSummaryOpen ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
                       </div>
                     </button>
 
                     {isSummaryOpen && (
-                      <div className="p-3 space-y-2.5 text-xs">
+                      <div className="p-3 space-y-2.5 text-xs border-t border-slate-200">
                         {/* Tri-state summary badges */}
                         <div className="flex flex-wrap gap-1.5">
                           {formatFieldTriState(sym.chemical_exposure, 'مادة كيميائية', 'Chemicals')}
@@ -1200,10 +1228,10 @@ export const WhatsAppSimulator: React.FC<WhatsAppSimulatorProps> = ({
           return (
             <div
               key={msg.id}
-              className={`flex ${isPatient ? 'justify-end' : 'justify-start'} my-1.5`}
+              className={`flex ${isPatient ? 'justify-end' : 'justify-start'} my-2`}
             >
               <div
-                className={`max-w-[85%] rounded-2xl px-3 py-2 text-xs shadow-2xs relative ${
+                className={`max-w-[85%] rounded-2xl px-3.5 py-2.5 text-sm shadow-2xs relative ${
                   isPatient
                     ? 'bg-[#d9fdd3] text-slate-900 rounded-tr-xs'
                     : 'bg-white text-slate-900 rounded-tl-xs'
@@ -1218,7 +1246,7 @@ export const WhatsAppSimulator: React.FC<WhatsAppSimulatorProps> = ({
                     audioUrl={msg.audioUrl}
                   />
                 ) : (
-                  <p className="whitespace-pre-line leading-relaxed text-[12px]">{msg.text}</p>
+                  <p className="whitespace-pre-line leading-relaxed text-[14px] sm:text-[15px] font-normal">{msg.text}</p>
                 )}
 
                 {/* Quick replies if any attached to bot question */}
@@ -1236,7 +1264,7 @@ export const WhatsAppSimulator: React.FC<WhatsAppSimulatorProps> = ({
                           type="button"
                           disabled={isDisabled}
                           onClick={() => handleQuickReplyClick(qr, msg.id)}
-                          className={`py-1 px-2.5 rounded-full text-[11px] font-semibold transition-all ${
+                          className={`py-1.5 px-3 rounded-full text-xs font-semibold transition-all ${
                             isSelected
                               ? 'bg-emerald-700 text-white border border-emerald-800 shadow-2xs cursor-default font-bold'
                               : isDisabled
@@ -1244,7 +1272,7 @@ export const WhatsAppSimulator: React.FC<WhatsAppSimulatorProps> = ({
                               : 'bg-emerald-50 hover:bg-emerald-100 text-emerald-900 border border-emerald-200 cursor-pointer shadow-2xs'
                           }`}
                         >
-                          {isSelected && <span className="mr-1 ml-1 text-[10px]">✓</span>}
+                          {isSelected && <span className="mr-1 ml-1 text-[11px]">✓</span>}
                           {language === 'ar' ? qr.labelAr : qr.labelEn}
                         </button>
                       );
@@ -1260,7 +1288,7 @@ export const WhatsAppSimulator: React.FC<WhatsAppSimulatorProps> = ({
                       minute: '2-digit',
                     })}
                   </span>
-                  {isPatient && <CheckCheck className="w-3 h-3 text-sky-500" />}
+                  {isPatient && <CheckCheck className="w-3.5 h-3.5 text-sky-500" />}
                 </div>
               </div>
             </div>
@@ -1359,7 +1387,7 @@ export const WhatsAppSimulator: React.FC<WhatsAppSimulatorProps> = ({
                 ? 'اكتب وصفاً للأعراض هنا...'
                 : 'Describe eye symptoms here...'
             }
-            className="flex-1 bg-white rounded-full px-4 py-2 text-xs border border-slate-300 focus:outline-hidden focus:ring-1 focus:ring-emerald-600 disabled:bg-slate-100 disabled:text-slate-400 placeholder:text-slate-400"
+            className="flex-1 bg-white rounded-full px-4 py-2 text-[14px] border border-slate-300 focus:outline-hidden focus:ring-1 focus:ring-emerald-600 disabled:bg-slate-100 disabled:text-slate-400 placeholder:text-slate-400"
           />
 
           {/* Send Button */}
