@@ -1,6 +1,7 @@
 import React from 'react';
 import { TriageSession, Language, TriState } from '../../types/triage';
 import { ShieldAlert, Cpu, ArrowUpRight, CheckCircle2, XCircle, HelpCircle, Clock } from 'lucide-react';
+import { resolveSessionScenario } from '../../utils/sessionScenario';
 
 interface SessionProgressPanelProps {
   session: TriageSession | null;
@@ -52,6 +53,7 @@ export const SessionProgressPanel: React.FC<SessionProgressPanelProps> = ({
   const s = session.symptoms;
   const decision = session.decision;
   const isPending = session.status === 'FOLLOW_UP' || (decision && !decision.isFinalDecision);
+  const matchingScenario = resolveSessionScenario(session);
 
   return (
     <div className="bg-white rounded-xl border border-slate-200 shadow-xs p-4 flex flex-col h-full space-y-4 text-left rtl:text-right">
@@ -82,6 +84,31 @@ export const SessionProgressPanel: React.FC<SessionProgressPanelProps> = ({
             : session.status}
         </span>
       </div>
+
+      {/* Reviewer Expected Outcome (for reviewers, hidden from patient picker) */}
+      {matchingScenario && (
+        <div className="p-3 rounded-lg border border-teal-200 bg-teal-50/40 flex items-center justify-between gap-2">
+          <div>
+            <span className="text-[10px] font-bold text-teal-800 uppercase tracking-wider block">
+              {language === 'ar' ? 'النتيجة المتوقعة للتجربة' : 'Expected demo outcome'}
+            </span>
+            <span className="text-xs font-semibold text-slate-900 mt-0.5 block">
+              {language === 'ar' ? matchingScenario.titleAr : matchingScenario.titleEn}
+            </span>
+          </div>
+          <span
+            className={`text-[11px] font-bold px-2 py-0.5 rounded shrink-0 ${
+              matchingScenario.expectedUrgency === 'EMERGENCY'
+                ? 'bg-rose-600 text-white'
+                : matchingScenario.expectedUrgency === 'URGENT'
+                ? 'bg-amber-600 text-white'
+                : 'bg-teal-700 text-white'
+            }`}
+          >
+            {matchingScenario.expectedUrgency}
+          </span>
+        </div>
+      )}
 
       {/* 1. Structured Symptom Fields */}
       <div>

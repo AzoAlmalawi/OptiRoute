@@ -443,7 +443,9 @@ export default function App() {
                     selectedCity={selectedCity}
                     onSelectCity={setSelectedCity}
                     isLoading={isProcessing}
-                    queuedScenarioTitle={activeCaseTitle}
+                    queuedScenarioTitle={
+                      caseDisplay.kind === 'scenario' ? caseDisplay.title : undefined
+                    }
                     onCorrectField={handleCorrectField}
                     onViewCaseInDashboard={(sessionId) => {
                       setInspectedDashboardSessionId(sessionId);
