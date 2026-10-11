@@ -251,7 +251,7 @@ export const WhatsAppSimulator: React.FC<WhatsAppSimulatorProps> = ({
                 )}
               </span>
               <span className="text-[10px] bg-teal-950/80 text-teal-200 px-1.5 py-0.2 rounded font-normal">
-                {language === 'ar' ? 'موثّق' : 'Verified'}
+                {language === 'ar' ? 'تجريبي' : 'Demo'}
               </span>
             </div>
             <span className="text-[10px] text-teal-100/90 flex items-center gap-1">
@@ -271,21 +271,6 @@ export const WhatsAppSimulator: React.FC<WhatsAppSimulatorProps> = ({
             aria-label="Location"
           >
             <MapPin className="w-4 h-4" />
-          </button>
-
-          {/* Reset Action */}
-          <button
-            onClick={onResetSession}
-            disabled={isLoading}
-            className="p-1.5 text-teal-100 hover:text-white hover:bg-teal-700/60 rounded-full transition-colors disabled:opacity-40 cursor-pointer"
-            title={
-              language === 'ar'
-                ? 'إعادة تعيين المحادثة وبدء جلسة جديدة'
-                : 'Reset chat & start fresh session'
-            }
-            aria-label="Reset session"
-          >
-            <RotateCcw className="w-4 h-4" />
           </button>
         </div>
       </div>

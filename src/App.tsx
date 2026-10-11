@@ -205,6 +205,7 @@ export default function App() {
   const handleResetSession = async () => {
     setActiveScenarioId(undefined);
     setQueuedScenario(null);
+    setDecisionDrawerOpen(false);
     setIsProcessing(true);
     try {
       const fresh = await orchestrator.createNewSession(language, false);
@@ -227,6 +228,7 @@ export default function App() {
       updateActiveSession(fresh);
       setActiveScenarioId(undefined);
       setQueuedScenario(null);
+      setDecisionDrawerOpen(false);
     } finally {
       setIsProcessing(false);
     }
@@ -278,6 +280,17 @@ export default function App() {
   const caseDisplay = getSessionCaseDisplay(currentSession, language, queuedScenario);
   const activeCaseTitle = caseDisplay.title;
 
+  const hasAnalysisDetails = Boolean(
+    currentSession &&
+      (currentSession.decision ||
+        currentSession.status === 'FOLLOW_UP' ||
+        currentSession.status === 'COMPLETED' ||
+        (currentSession.events &&
+          currentSession.events.some((e) =>
+            ['SYMPTOM_EXTRACTION', 'RULE_EVALUATION', 'MODEL_CLASSIFICATION', 'URGENCY_RESOLVED'].includes(e.type)
+          )))
+  );
+
   return (
     <div className="min-h-screen bg-slate-50 text-slate-900 flex flex-col font-sans selection:bg-teal-100 selection:text-teal-900 w-full max-w-full overflow-x-hidden">
       {/* Top Navigation Bar */}
@@ -295,7 +308,7 @@ export default function App() {
           <div className="space-y-2.5 sm:space-y-3 w-full max-w-full min-w-0">
             {/* Top Scenario Banner & Actions */}
             <div className="bg-white rounded-xl border border-slate-200 shadow-2xs p-2.5 sm:p-3 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2.5">
-              <div className="flex items-center gap-2 flex-wrap min-w-0">
+              <div className="flex items-center gap-2 flex-wrap min-w-0 flex-1">
                 <span className="text-xs font-semibold text-slate-500 shrink-0">
                   {language === 'ar' ? 'الحالة الحالية:' : 'Current Case:'}
                 </span>
@@ -317,7 +330,7 @@ export default function App() {
                 )}
               </div>
 
-              <div className="flex items-center gap-2 shrink-0 flex-wrap justify-end">
+              <div className="flex items-center gap-2 shrink-0 flex-wrap justify-end transition-all duration-150">
                 {/* PRIMARY ACTION: Try a demo case */}
                 <button
                   type="button"
@@ -338,26 +351,28 @@ export default function App() {
                   )}
                 </button>
 
-                {/* SECONDARY ACTION 1: Decision details */}
-                <button
-                  type="button"
-                  onClick={() => setDecisionDrawerOpen(!decisionDrawerOpen)}
-                  className={`px-2.5 py-1.5 rounded-lg text-xs font-medium transition-colors flex items-center gap-1.5 border cursor-pointer ${
-                    decisionDrawerOpen
-                      ? 'bg-slate-800 text-white border-slate-900 shadow-2xs'
-                      : 'bg-white hover:bg-slate-50 text-slate-700 border border-slate-200'
-                  }`}
-                  aria-expanded={decisionDrawerOpen}
-                  title={language === 'ar' ? 'كيف اتُّخذ القرار؟ (تفاصيل محرك القواعد)' : 'How was this decision made? (Rule engine details)'}
-                >
-                  <HelpCircle className="w-3.5 h-3.5 text-slate-500" />
-                  <span>{language === 'ar' ? 'تفاصيل القرار' : 'Decision details'}</span>
-                  {decisionDrawerOpen ? (
-                    <ChevronUp className="w-3.5 h-3.5" />
-                  ) : (
-                    <ChevronDown className="w-3.5 h-3.5" />
-                  )}
-                </button>
+                {/* SECONDARY ACTION 1: Decision details (visible once analysis details are available) */}
+                {hasAnalysisDetails && (
+                  <button
+                    type="button"
+                    onClick={() => setDecisionDrawerOpen(!decisionDrawerOpen)}
+                    className={`px-2.5 py-1.5 rounded-lg text-xs font-medium transition-colors flex items-center gap-1.5 border cursor-pointer animate-fadeIn ${
+                      decisionDrawerOpen
+                        ? 'bg-slate-800 text-white border-slate-900 shadow-2xs'
+                        : 'bg-white hover:bg-slate-50 text-slate-700 border border-slate-200'
+                    }`}
+                    aria-expanded={decisionDrawerOpen}
+                    title={language === 'ar' ? 'كيف اتُّخذ القرار؟ (تفاصيل محرك القواعد)' : 'How was this decision made? (Rule engine details)'}
+                  >
+                    <HelpCircle className="w-3.5 h-3.5 text-slate-500" />
+                    <span>{language === 'ar' ? 'تفاصيل القرار' : 'Decision details'}</span>
+                    {decisionDrawerOpen ? (
+                      <ChevronUp className="w-3.5 h-3.5" />
+                    ) : (
+                      <ChevronDown className="w-3.5 h-3.5" />
+                    )}
+                  </button>
+                )}
 
                 {/* SECONDARY ACTION 2: Start a new demo */}
                 <button
@@ -405,7 +420,7 @@ export default function App() {
             )}
 
             {/* Collapsible Panel 2: How was this decision made? (Live progress & safety rules) */}
-            {decisionDrawerOpen && (
+            {decisionDrawerOpen && hasAnalysisDetails && (
               <div className="bg-white rounded-2xl border-2 border-slate-300 shadow-lg p-4 animate-fadeIn">
                 <div className="flex items-center justify-between pb-3 mb-3 border-b border-slate-100">
                   <div className="flex items-center gap-2">

@@ -91,11 +91,11 @@ export const Header: React.FC<HeaderProps> = ({
           <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
             <button
               onClick={onOpenRoadmap}
-              className="inline-flex items-center gap-1 px-2 sm:px-3 py-1.5 text-xs font-medium text-slate-700 bg-white border border-slate-200 rounded-md hover:bg-slate-50 hover:text-slate-900 transition-colors shadow-2xs whitespace-nowrap"
+              className="inline-flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 text-xs font-medium text-slate-700 bg-white border border-slate-200 rounded-md hover:bg-slate-50 hover:text-slate-900 transition-colors shadow-2xs whitespace-nowrap cursor-pointer"
               title={language === 'ar' ? 'عن النموذج والخطة المستقبلية' : 'About the Prototype & Future Plan'}
             >
               <BookOpen className="w-3.5 h-3.5 text-slate-500" />
-              <span className="hidden sm:inline">{t.roadmapBtn}</span>
+              <span>{t.roadmapBtn}</span>
             </button>
 
             <button
