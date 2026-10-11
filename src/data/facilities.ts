@@ -401,13 +401,13 @@ export function getRecommendedFacility(
       urgency === 'EMERGENCY'
         ? 'يُرجى الاتصال بالإسعاف (997) فوراً أو التوجه إلى أقرب طوارئ عامة.'
         : urgency === 'URGENT'
-        ? 'يُرجى مراجعة عيادة عيون تخصصية معتمدة لإجراء تقييم عاجل خلال 24 ساعة.'
+        ? 'يُرجى مراجعة عيادة عيون تخصصية معتمدة لإجراء تقييم عاجل في اليوم نفسه.'
         : 'يُرجى حجز موعد لدى أقرب مركز رعاية صحية أولية لتلقي الرعاية الروتينية.';
     const guidanceEn =
       urgency === 'EMERGENCY'
         ? 'Please call 997 immediately or proceed to the nearest emergency department.'
         : urgency === 'URGENT'
-        ? 'Please visit a certified eye specialty clinic for same-day evaluation within 24 hours.'
+        ? 'Please visit a certified eye specialty clinic for urgent same-day evaluation.'
         : 'Please consult the nearest primary healthcare center for routine consultation.';
 
     return {

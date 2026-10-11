@@ -215,7 +215,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
         return (
           <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-amber-800 bg-amber-50 px-2 py-0.5 rounded border border-amber-200">
             <AlertTriangle className="w-3.5 h-3.5 text-amber-600 shrink-0" />
-            <span>{language === 'ar' ? 'عاجل (اليوم نفسه)' : 'URGENT (Same-Day)'}</span>
+            <span>{language === 'ar' ? 'عاجل — تقييم في اليوم نفسه' : 'Urgent — Same-day evaluation'}</span>
             {session.isLegacyRecord && (
               <span className="text-[10px] bg-amber-100 text-amber-800 px-1 rounded font-normal">
                 {language === 'ar' ? 'سجل سابق' : 'Legacy'}

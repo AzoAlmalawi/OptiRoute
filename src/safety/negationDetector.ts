@@ -94,6 +94,8 @@ const AR_NEGATION_PATTERNS: RegExp[] = [
   /(?:^|\s)ولا(?:\s|$)/,
   // Standalone la ("لا إصابة", "لا ألم")
   /(?:^|\s)لا(?:\s|$)/,
+  // Standalone ma / wa-ma ("ما انضربت", "وما دخلت", "ما فيه")
+  /(?:^|\s)(?:و)?ما(?:\s|$)/,
 ];
 
 const AR_UNCERTAINTY_PATTERNS: RegExp[] = [

@@ -553,8 +553,8 @@ export const WhatsAppSimulator: React.FC<WhatsAppSimulatorProps> = ({
                               : 'EMERGENCY (Immediate Eye Care)'
                             : isUrgent
                             ? language === 'ar'
-                              ? 'عاجل (فحص خلال 24 ساعة)'
-                              : 'URGENT (Same-Day Evaluation)'
+                              ? 'عاجل — تقييم في اليوم نفسه'
+                              : 'Urgent — Same-day evaluation'
                             : language === 'ar'
                             ? 'غير عاجل (رعاية أولية)'
                             : 'NON-URGENT (Primary Care)'}
