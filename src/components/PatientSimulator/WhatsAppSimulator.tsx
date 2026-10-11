@@ -324,15 +324,15 @@ export const WhatsAppSimulator: React.FC<WhatsAppSimulatorProps> = ({
       {/* Compact Conversation Progress Indicator */}
       <ConversationProgressIndicator session={session} language={language} />
 
-      {/* WhatsApp Chat Wallpaper / Background */}
+      {/* WhatsApp Chat Wallpaper / Background - #F5F7FA */}
       <div
         ref={chatScrollContainerRef}
         onScroll={handleChatScroll}
-        className="flex-1 bg-[#f8f9fa] overflow-y-auto p-3.5 space-y-3 relative"
+        className="flex-1 bg-[#F5F7FA] overflow-y-auto p-3.5 space-y-3 relative"
       >
         {/* Date header */}
         <div className="flex justify-center my-1">
-          <span className="text-[10px] text-slate-600 bg-white/80 backdrop-blur-xs px-2.5 py-0.5 rounded-full shadow-2xs font-medium">
+          <span className="text-[11px] text-slate-600 bg-white/90 backdrop-blur-xs px-2.5 py-0.5 rounded-full shadow-2xs font-medium border border-slate-200/80">
             {new Date(session.startedAt).toLocaleDateString(
               language === 'ar' ? 'ar-SA' : 'en-US',
               { weekday: 'short', month: 'short', day: 'numeric' }
@@ -353,19 +353,19 @@ export const WhatsAppSimulator: React.FC<WhatsAppSimulatorProps> = ({
           if (isSystem) {
             return (
               <div key={msg.id} className="flex justify-center my-2.5 animate-msg-entry">
-                <div className="bg-white text-slate-800 border border-slate-200/90 rounded-2xl p-4 max-w-[92%] shadow-xs space-y-2.5">
-                  <div className="flex items-center gap-1.5 font-bold text-slate-900 text-xs sm:text-sm">
-                    <ShieldCheck className="w-4 h-4 text-teal-700 shrink-0" />
+                <div className="bg-white text-[#172B3A] border border-slate-200 rounded-2xl p-4 max-w-[92%] shadow-xs space-y-2.5">
+                  <div className="flex items-center gap-1.5 font-bold text-[#172B3A] text-xs sm:text-sm">
+                    <ShieldCheck className="w-4 h-4 text-[#087F8C] shrink-0" />
                     <span>{language === 'ar' ? 'إشعار الموافقة الطبية' : 'Clinical Consent Notice'}</span>
                   </div>
-                  <p className="whitespace-pre-line leading-relaxed text-[14px] text-slate-700">
+                  <p className="whitespace-pre-line leading-relaxed text-[14px] text-[#172B3A]">
                     {msg.text}
                   </p>
 
                   {/* Queued scenario pending consent banner */}
                   {queuedScenarioTitle && !session.consentGiven && session.status === 'AWAITING_CONSENT' && (
-                    <div className="bg-teal-50 text-teal-900 p-2.5 rounded-xl border border-teal-200 text-[11px] font-semibold flex items-center gap-1.5">
-                      <span>📌</span>
+                    <div className="bg-[#DCF3EA] text-[#172B3A] p-2.5 rounded-xl border border-[#087F8C]/20 text-[11px] font-semibold flex items-center gap-1.5">
+                      <span className="text-[#087F8C]">📌</span>
                       <span>
                         {language === 'ar'
                           ? `سيناريو محدد: "${queuedScenarioTitle}" — يرجى الموافقة أدناه لبدء المحاكاة.`
@@ -383,8 +383,8 @@ export const WhatsAppSimulator: React.FC<WhatsAppSimulatorProps> = ({
                           onClick={() => handleQuickReplyClick(qr)}
                           className={`w-full py-2 px-3.5 rounded-xl text-xs font-semibold transition-colors cursor-pointer ${
                             qr.value === 'CONSENT_GRANTED'
-                              ? 'bg-teal-700 hover:bg-teal-800 text-white shadow-xs'
-                              : 'bg-slate-100 hover:bg-slate-200 text-slate-700'
+                              ? 'bg-[#087F8C] hover:bg-[#066772] text-white shadow-xs'
+                              : 'bg-slate-100 hover:bg-slate-200 text-[#172B3A]'
                           }`}
                         >
                           {language === 'ar' ? qr.labelAr : qr.labelEn}
@@ -511,17 +511,17 @@ export const WhatsAppSimulator: React.FC<WhatsAppSimulatorProps> = ({
 
             return (
               <div key={msg.id} className="flex justify-start my-2 max-w-[94%] sm:max-w-[92%] animate-msg-entry">
-                <div className="bg-white rounded-2xl p-4 shadow-xs border border-slate-200/90 space-y-3.5 w-full text-slate-900">
-                  {/* 1. Urgency Badge - Compact with icon and clear urgency text */}
+                <div className="bg-white rounded-2xl p-4 shadow-xs border border-slate-200/90 space-y-3.5 w-full text-[#172B3A]">
+                  {/* 1. Urgency Badge - Compact with icon, clear urgency text, and explicit 'OptiRoute Assessment' title */}
                   <div className="flex items-center justify-between pb-3 border-b border-slate-100">
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-2.5">
                       <div
                         className={`p-1.5 rounded-lg shrink-0 ${
                           isEmergency
                             ? 'bg-rose-50 text-rose-700 border border-rose-200/90'
                             : isUrgent
                             ? 'bg-amber-50 text-amber-800 border border-amber-200/90'
-                            : 'bg-teal-50 text-teal-800 border border-teal-200/90'
+                            : 'bg-emerald-50 text-emerald-800 border border-emerald-200/90'
                         }`}
                       >
                         {isEmergency ? (
@@ -529,20 +529,22 @@ export const WhatsAppSimulator: React.FC<WhatsAppSimulatorProps> = ({
                         ) : isUrgent ? (
                           <AlertTriangle className="w-4 h-4 text-amber-600" />
                         ) : (
-                          <ShieldCheck className="w-4 h-4 text-teal-600" />
+                          <ShieldCheck className="w-4 h-4 text-emerald-600" />
                         )}
                       </div>
                       <div>
-                        <span className="text-[10px] uppercase font-bold text-slate-400 tracking-wider block leading-tight">
-                          {language === 'ar' ? 'نتيجة الفرز الاسترشادي' : 'Triage Assessment'}
-                        </span>
+                        <div className="flex items-center gap-1.5 leading-tight">
+                          <span className="text-[12px] font-semibold text-slate-600 block">
+                            👁️ {language === 'ar' ? 'تقييم OptiRoute' : 'OptiRoute Assessment'}
+                          </span>
+                        </div>
                         <span
-                          className={`font-bold text-sm sm:text-base leading-tight block ${
+                          className={`font-bold text-sm sm:text-base leading-tight block mt-0.5 ${
                             isEmergency
                               ? 'text-rose-700'
                               : isUrgent
                               ? 'text-amber-800'
-                              : 'text-teal-800'
+                              : 'text-emerald-800'
                           }`}
                         >
                           {isEmergency
@@ -1229,11 +1231,11 @@ export const WhatsAppSimulator: React.FC<WhatsAppSimulatorProps> = ({
 
                   {/* Hospital Dashboard Link Button for Hackathon Demo */}
                   {onViewCaseInDashboard && (
-                    <div className="pt-2 border-t border-black/10 space-y-1.5">
+                    <div className="pt-2 border-t border-slate-100 space-y-1.5">
                       <button
                         type="button"
                         onClick={() => onViewCaseInDashboard(session.id)}
-                        className="w-full inline-flex items-center justify-center gap-2 py-2 px-3 bg-teal-800 hover:bg-teal-900 active:bg-teal-950 text-white rounded-xl text-xs font-bold transition-colors shadow-2xs cursor-pointer"
+                        className="w-full inline-flex items-center justify-center gap-2 py-2.5 px-3.5 bg-[#087F8C] hover:bg-[#066772] active:bg-[#05555e] text-white rounded-xl text-xs font-bold transition-colors shadow-2xs cursor-pointer"
                       >
                         <ExternalLink className="w-3.5 h-3.5 shrink-0" />
                         <span>
@@ -1242,7 +1244,7 @@ export const WhatsAppSimulator: React.FC<WhatsAppSimulatorProps> = ({
                             : 'View this case in the hospital dashboard'}
                         </span>
                       </button>
-                      <p className="text-[10px] text-slate-500 leading-tight text-center px-1">
+                      <p className="text-[11px] text-slate-500 leading-tight text-center px-1">
                         {language === 'ar'
                           ? 'يفتح هذا الإجراء الحالة الافتراضية في لوحة تحكم هذا المتصفح فقط. لا يتم إرسال أي إحالة لمستشفى حقيقي.'
                           : 'This opens the simulated case in this browser’s dashboard. No referral is sent to a real hospital.'}
@@ -1250,14 +1252,14 @@ export const WhatsAppSimulator: React.FC<WhatsAppSimulatorProps> = ({
                     </div>
                   )}
 
-                  <div className="text-[10px] text-slate-400 text-right rtl:text-left flex items-center justify-end gap-1">
+                  <div className="text-[11px] text-slate-500 text-right rtl:text-left flex items-center justify-end gap-1">
                     <span>
                       {new Date(msg.timestamp).toLocaleTimeString([], {
                         hour: '2-digit',
                         minute: '2-digit',
                       })}
                     </span>
-                    <CheckCheck className="w-3 h-3 text-teal-600" />
+                    <CheckCheck className="w-3.5 h-3.5 text-[#087F8C]" />
                   </div>
                 </div>
               </div>
@@ -1272,25 +1274,22 @@ export const WhatsAppSimulator: React.FC<WhatsAppSimulatorProps> = ({
               <div
                 className={`max-w-[85%] rounded-2xl px-3.5 py-2.5 text-sm shadow-2xs relative border ${
                   isPatient
-                    ? 'bg-[#e7f7e9] border-[#d0eed4] text-slate-900 rounded-tr-xs rtl:rounded-tr-2xl rtl:rounded-tl-xs'
-                    : 'bg-white border-slate-200/80 text-slate-900 rounded-tl-xs rtl:rounded-tl-2xl rtl:rounded-tr-xs'
+                    ? 'bg-[#DCF3EA] border-[#087F8C]/20 text-[#172B3A] rounded-tr-xs rtl:rounded-tr-2xl rtl:rounded-tl-xs'
+                    : 'bg-white border-slate-200/90 text-[#172B3A] rounded-tl-xs rtl:rounded-tl-2xl rtl:rounded-tr-xs'
                 }`}
               >
-                {/* Subtle sender label to distinguish patient vs assistant without solely relying on color */}
-                <div className="flex items-center gap-1.5 mb-1 select-none">
-                  <span
-                    className={`text-[10px] font-bold uppercase tracking-wider ${
-                      isPatient ? 'text-teal-800' : 'text-slate-500'
-                    }`}
-                  >
-                    {isPatient
-                      ? language === 'ar'
-                        ? 'أنت (المستخدم)'
-                        : 'You'
-                      : language === 'ar'
-                      ? 'OptiRoute المساعد الطبي'
-                      : 'OptiRoute Clinical'}
-                  </span>
+                {/* Speaker label: 12-13px semibold, readable, with icon for assistant */}
+                <div className="flex items-center gap-1.5 mb-1.5 select-none">
+                  {isPatient ? (
+                    <span className="text-[12px] sm:text-[13px] font-semibold text-[#087F8C]">
+                      {language === 'ar' ? 'أنت' : 'You'}
+                    </span>
+                  ) : (
+                    <span className="inline-flex items-center gap-1 text-[12px] sm:text-[13px] font-semibold text-slate-700">
+                      <span className="text-[12px]">👁️</span>
+                      <span>{language === 'ar' ? 'مساعد OptiRoute' : 'OptiRoute Assistant'}</span>
+                    </span>
+                  )}
                 </div>
 
                 {/* Voice Note message bubble */}
@@ -1302,12 +1301,12 @@ export const WhatsAppSimulator: React.FC<WhatsAppSimulatorProps> = ({
                     audioUrl={msg.audioUrl}
                   />
                 ) : (
-                  <p className="whitespace-pre-line leading-relaxed text-[14px] sm:text-[15px] font-normal text-slate-800">
+                  <p className="whitespace-pre-line leading-relaxed text-[14px] sm:text-[15px] font-normal text-[#172B3A]">
                     {msg.text}
                   </p>
                 )}
 
-                {/* Quick replies if any attached to bot question */}
+                {/* Quick replies if any attached to assistant question */}
                 {msg.quickReplies && (
                   <div className="flex flex-wrap gap-1.5 pt-2 mt-2 border-t border-slate-100">
                     {msg.quickReplies.map((qr) => {
@@ -1324,10 +1323,10 @@ export const WhatsAppSimulator: React.FC<WhatsAppSimulatorProps> = ({
                           onClick={() => handleQuickReplyClick(qr, msg.id)}
                           className={`py-1.5 px-3 rounded-full text-xs font-semibold transition-all ${
                             isSelected
-                              ? 'bg-teal-700 text-white border border-teal-800 shadow-2xs cursor-default font-bold'
+                              ? 'bg-[#087F8C] text-white border border-[#066772] shadow-2xs cursor-default font-bold'
                               : isDisabled
                               ? 'bg-slate-100 text-slate-400 border border-slate-200 cursor-not-allowed opacity-60'
-                              : 'bg-teal-50 hover:bg-teal-100 text-teal-900 border border-teal-200 cursor-pointer shadow-2xs'
+                              : 'bg-white hover:bg-[#DCF3EA] text-[#172B3A] border border-slate-300 hover:border-[#087F8C] cursor-pointer shadow-2xs'
                           }`}
                         >
                           {isSelected && <span className="mr-1 ml-1 text-[11px]">✓</span>}
@@ -1338,15 +1337,15 @@ export const WhatsAppSimulator: React.FC<WhatsAppSimulatorProps> = ({
                   </div>
                 )}
 
-                {/* Timestamp & read receipts */}
-                <div className="text-[10px] text-slate-400 mt-1.5 flex items-center justify-end gap-1 select-none">
+                {/* Timestamp & read receipts - clearly separated from message body */}
+                <div className="text-[11px] text-slate-500 pt-1.5 mt-1 border-t border-black/[0.04] flex items-center justify-end gap-1 select-none">
                   <span>
                     {new Date(msg.timestamp).toLocaleTimeString([], {
                       hour: '2-digit',
                       minute: '2-digit',
                     })}
                   </span>
-                  {isPatient && <CheckCheck className="w-3.5 h-3.5 text-teal-600" />}
+                  {isPatient && <CheckCheck className="w-3.5 h-3.5 text-[#087F8C]" />}
                 </div>
               </div>
             </div>
@@ -1412,7 +1411,7 @@ export const WhatsAppSimulator: React.FC<WhatsAppSimulatorProps> = ({
       )}
 
       {/* Bottom Message Input Bar */}
-      <div className="bg-slate-50 px-3.5 py-2.5 border-t border-slate-200/90">
+      <div className="bg-slate-50 px-3.5 py-2.5 border-t border-slate-200">
         <form onSubmit={handleSendText} className="flex items-center gap-2">
           {/* Voice note trigger button */}
           <button
@@ -1422,7 +1421,7 @@ export const WhatsAppSimulator: React.FC<WhatsAppSimulatorProps> = ({
             className={`p-2 rounded-full transition-colors shrink-0 cursor-pointer ${
               isRecordingSim
                 ? 'bg-rose-600 text-white shadow-xs'
-                : 'text-slate-600 hover:text-slate-900 hover:bg-slate-200/80 disabled:opacity-40 disabled:cursor-not-allowed'
+                : 'text-slate-600 hover:text-[#172B3A] hover:bg-slate-200/80 disabled:opacity-40 disabled:cursor-not-allowed'
             }`}
             title={language === 'ar' ? 'تسجيل صوتي تجريبي' : 'Simulated Voice Note'}
             aria-label="Voice Note"
@@ -1445,14 +1444,14 @@ export const WhatsAppSimulator: React.FC<WhatsAppSimulatorProps> = ({
                 ? 'اكتب وصفاً للأعراض هنا...'
                 : 'Describe eye symptoms here...'
             }
-            className="flex-1 bg-white rounded-full px-4 py-2 text-[14px] border border-slate-300 focus:outline-hidden focus:border-teal-600 focus:ring-2 focus:ring-teal-100 disabled:bg-slate-100 disabled:text-slate-400 placeholder:text-slate-400 shadow-2xs transition-all"
+            className="flex-1 bg-white rounded-full px-4 py-2 text-[14px] text-[#172B3A] border border-slate-300 focus:outline-hidden focus:border-[#087F8C] focus:ring-2 focus:ring-[#087F8C]/20 disabled:bg-slate-100 disabled:text-slate-400 placeholder:text-slate-400 shadow-2xs transition-all"
           />
 
-          {/* Send Button */}
+          {/* Send Button - Primary #087F8C with white text */}
           <button
             type="submit"
             disabled={!inputText.trim() || !session.consentGiven || isLoading}
-            className="w-8.5 h-8.5 rounded-full bg-teal-700 text-white flex items-center justify-center hover:bg-teal-800 active:bg-teal-900 transition-colors disabled:opacity-40 disabled:cursor-not-allowed shrink-0 shadow-2xs cursor-pointer"
+            className="w-8.5 h-8.5 rounded-full bg-[#087F8C] text-white flex items-center justify-center hover:bg-[#066772] active:bg-[#05555e] transition-colors disabled:opacity-40 disabled:cursor-not-allowed shrink-0 shadow-2xs cursor-pointer"
             aria-label="Send"
           >
             <Send className="w-4 h-4 rtl:rotate-180" />

@@ -114,7 +114,7 @@ export const AudioPlayerSim: React.FC<AudioPlayerSimProps> = ({
   return (
     <div className="space-y-1.5 w-full">
       {/* Real HTML5 Audio Player Controls */}
-      <div className="flex items-center gap-2.5 bg-emerald-950/5 dark:bg-emerald-500/10 p-2 rounded-xl">
+      <div className="flex items-center gap-2.5 bg-black/[0.04] p-2 rounded-xl border border-black/[0.06]">
         <button
           type="button"
           onClick={togglePlay}
@@ -122,7 +122,7 @@ export const AudioPlayerSim: React.FC<AudioPlayerSimProps> = ({
           className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 transition-colors shadow-2xs ${
             hasError
               ? 'bg-slate-400 text-white cursor-not-allowed'
-              : 'bg-emerald-700 text-white hover:bg-emerald-800'
+              : 'bg-[#087F8C] text-white hover:bg-[#066772]'
           }`}
           aria-label={isPlaying ? 'Pause' : 'Play audio note'}
         >
@@ -150,8 +150,8 @@ export const AudioPlayerSim: React.FC<AudioPlayerSimProps> = ({
                     hasError
                       ? 'bg-slate-300'
                       : isPast
-                      ? 'bg-emerald-700'
-                      : 'bg-emerald-300/80'
+                      ? 'bg-[#087F8C]'
+                      : 'bg-[#087F8C]/35'
                   }`}
                   style={{ height: `${heightPercent}%` }}
                 />
@@ -161,7 +161,7 @@ export const AudioPlayerSim: React.FC<AudioPlayerSimProps> = ({
         </div>
 
         {/* Real Audio Metadata Duration / Elapsed Time */}
-        <div className="text-[11px] text-slate-500 tabular-nums font-mono shrink-0">
+        <div className="text-[11px] text-slate-600 tabular-nums font-mono shrink-0">
           {isPlaying ? formatTime(currentTime) : formatTime(realDuration)}
         </div>
       </div>
@@ -199,10 +199,10 @@ export const AudioPlayerSim: React.FC<AudioPlayerSimProps> = ({
           <button
             type="button"
             onClick={() => setIsTranscriptOpen(!isTranscriptOpen)}
-            className="inline-flex items-center gap-1 text-[11px] font-medium text-emerald-800 hover:text-emerald-950 transition-colors py-0.5 px-1 rounded-md hover:bg-emerald-50"
+            className="inline-flex items-center gap-1 text-[11px] font-semibold text-[#087F8C] hover:text-[#066772] transition-colors py-0.5 px-1 rounded-md hover:bg-black/[0.04]"
             aria-expanded={isTranscriptOpen}
           >
-            <Mic className="w-3 h-3 text-emerald-600 shrink-0" />
+            <Mic className="w-3 h-3 text-[#087F8C] shrink-0" />
             <span>
               {isTranscriptOpen
                 ? language === 'ar'
@@ -213,23 +213,23 @@ export const AudioPlayerSim: React.FC<AudioPlayerSimProps> = ({
                 : 'Show transcript'}
             </span>
             {isTranscriptOpen ? (
-              <ChevronUp className="w-3 h-3 text-emerald-700" />
+              <ChevronUp className="w-3 h-3 text-[#087F8C]" />
             ) : (
-              <ChevronDown className="w-3 h-3 text-emerald-700" />
+              <ChevronDown className="w-3 h-3 text-[#087F8C]" />
             )}
           </button>
 
           {isTranscriptOpen && (
-            <div className="mt-1 text-[12px] text-slate-700 bg-white/80 p-2.5 rounded-lg border border-slate-200/80 leading-relaxed shadow-2xs space-y-1 animate-fadeIn">
+            <div className="mt-1 text-[12px] text-[#172B3A] bg-white/90 p-2.5 rounded-lg border border-slate-200/90 leading-relaxed shadow-2xs space-y-1 animate-fadeIn">
               <div className="flex items-center gap-1 text-[10px] text-slate-500 font-medium">
-                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 shrink-0" />
+                <span className="w-1.5 h-1.5 rounded-full bg-[#087F8C] shrink-0" />
                 <span>
                   {language === 'ar'
                     ? 'تسجيل تجريبي مسبق الإعداد (محاكاة — لا يوجد تفريغ حي)'
                     : 'Prepared demo recording (simulated — no live speech model)'}
                 </span>
               </div>
-              <p className="italic font-normal text-slate-800">"{transcript}"</p>
+              <p className="italic font-normal text-[#172B3A]">"{transcript}"</p>
             </div>
           )}
         </div>
