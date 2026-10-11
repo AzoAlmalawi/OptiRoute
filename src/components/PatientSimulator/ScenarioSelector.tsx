@@ -42,16 +42,28 @@ export const ScenarioSelector: React.FC<ScenarioSelectorProps> = ({
                   : 'border-slate-200 bg-white hover:border-[#087F8C]/50 hover:shadow-xs'
               }`}
             >
-              <div className="flex-1 flex flex-col">
-                <h3 className="font-semibold text-xs sm:text-sm text-[#172B3A] line-clamp-1">
+              <div className="flex-1 flex flex-col min-w-0">
+                <h3 className="font-semibold text-xs sm:text-sm text-[#172B3A] line-clamp-1 min-w-0">
                   {language === 'ar' ? sc.titleAr : sc.titleEn}
                 </h3>
 
-                <p className="text-xs text-slate-500 mt-1 line-clamp-2 leading-relaxed min-h-[2.5rem]">
+                <p
+                  className="text-xs text-slate-500 mt-1 line-clamp-2 leading-relaxed whitespace-normal break-words min-w-0"
+                  style={{
+                    display: '-webkit-box',
+                    WebkitLineClamp: 2,
+                    WebkitBoxOrient: 'vertical',
+                    overflow: 'hidden',
+                    textOverflow: 'ellipsis',
+                    whiteSpace: 'normal',
+                    wordBreak: 'break-word',
+                    overflowWrap: 'break-word',
+                  }}
+                >
                   {language === 'ar' ? sc.descriptionAr : sc.descriptionEn}
                 </p>
 
-                <div className="mt-auto pt-2.5 flex items-center gap-1.5 text-[11px] text-[#087F8C] font-medium">
+                <div className="mt-auto pt-2.5 flex items-center gap-1.5 text-[11px] text-[#087F8C] font-medium min-w-0">
                   <Mic className="w-3.5 h-3.5 shrink-0" />
                   <span>
                     {language === 'ar' ? 'تسجيل تجريبي جاهز' : 'Prepared demo audio'}
