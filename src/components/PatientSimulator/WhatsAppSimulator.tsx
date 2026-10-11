@@ -7,6 +7,7 @@ import {
   StructuredSymptoms,
 } from '../../types/triage';
 import { DEMO_CITIES } from '../../data/facilities';
+import { TRANSLATIONS } from '../../data/translations';
 import { AudioPlayerSim } from './AudioPlayerSim';
 import { ConversationProgressIndicator } from './ConversationProgressIndicator';
 import {
@@ -336,6 +337,11 @@ export const WhatsAppSimulator: React.FC<WhatsAppSimulatorProps> = ({
             const isSystem = msg.sender === 'system';
 
           if (isSystem) {
+            const consentText =
+              msg.type === 'consent'
+                ? TRANSLATIONS[language]?.welcomeMessage || msg.text
+                : msg.text;
+
             return (
               <div key={msg.id} className="flex justify-center my-2.5 animate-msg-entry">
                 <div className="bg-white text-[#172B3A] border border-slate-200 rounded-2xl p-4 max-w-[92%] shadow-xs space-y-2.5">
@@ -344,7 +350,7 @@ export const WhatsAppSimulator: React.FC<WhatsAppSimulatorProps> = ({
                     <span>{language === 'ar' ? 'إشعار الموافقة الطبية' : 'Clinical Consent Notice'}</span>
                   </div>
                   <p className="whitespace-pre-line leading-relaxed text-[14px] text-[#172B3A]">
-                    {msg.text}
+                    {consentText}
                   </p>
 
                   {/* Queued scenario pending consent banner */}
