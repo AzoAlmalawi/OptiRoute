@@ -61,22 +61,20 @@ export default function App() {
     }
   };
 
-  // Initialize fresh or restored session ONCE on startup
+  // Initialize fresh demo session ONCE on startup/reload
   useEffect(() => {
     const init = async () => {
       await loadSessions();
-      let restored: TriageSession | null = null;
+      // On initial page load or reload, always start a brand new demo session at consent stage
+      const newSession = await orchestrator.createNewSession(language, false);
+      setCurrentSession(newSession);
+      setActiveScenarioId(undefined);
+      setQueuedScenario(null);
+      setScenariosOpen(false);
+      setDecisionDrawerOpen(false);
+      // Clean up any stale active session ID pointer from older versions
       if (typeof window !== 'undefined' && typeof localStorage !== 'undefined') {
-        const activeId = localStorage.getItem('optiroute_active_session_id');
-        if (activeId) {
-          restored = await orchestrator.repository.getSession(activeId);
-        }
-      }
-      if (restored) {
-        setCurrentSession(restored);
-      } else {
-        const newSession = await orchestrator.createNewSession(language, false);
-        updateActiveSession(newSession);
+        localStorage.removeItem('optiroute_active_session_id');
       }
     };
     init();
@@ -185,8 +183,8 @@ export default function App() {
     setIsProcessing(true);
     try {
       // 1, 2, 3: Create a fresh session with a new ID and reset state
-      // (saving the fresh session preserves all existing sessions in the repository)
-      const freshSession = await orchestrator.createNewSession(language, true, scenario.id);
+      // (created in memory; will be saved into repository upon consent/interaction)
+      const freshSession = await orchestrator.createNewSession(language, false, scenario.id);
       updateActiveSession(freshSession);
 
       // 4: Queue the selected scenario and require explicit consent before processing it
@@ -196,7 +194,7 @@ export default function App() {
         setSelectedCity(scenario.locationCity);
       }
 
-      // Sync sessions in state so dashboard keeps both previous and current sessions
+      // Sync sessions in state
       await loadSessions();
     } finally {
       setIsProcessing(false);

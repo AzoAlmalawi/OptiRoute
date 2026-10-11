@@ -82,6 +82,20 @@ export const WhatsAppSimulator: React.FC<WhatsAppSimulatorProps> = ({
   const prevMessagesCountRef = useRef<number>(session.messages.length);
   const isNearBottomRef = useRef<boolean>(true);
 
+  // Reset expandable panels, correction mode, and scroll position when a new session is loaded
+  useEffect(() => {
+    setShowTechnicalRules({});
+    setSummaryExpanded({});
+    setCorrectingField(null);
+    setInputText('');
+    setIsRecordingSim(false);
+    setRecordingSeconds(0);
+    // On new session (e.g. reload or fresh demo), reset internal scroll to top
+    if (chatScrollContainerRef.current) {
+      chatScrollContainerRef.current.scrollTo({ top: 0, behavior: 'auto' });
+    }
+  }, [session.id]);
+
   // Helper to scroll only the chat internal container to bottom without moving the outer page
   const scrollChatToBottom = (behavior: ScrollBehavior = 'smooth') => {
     const el = chatScrollContainerRef.current;
@@ -111,15 +125,17 @@ export const WhatsAppSimulator: React.FC<WhatsAppSimulatorProps> = ({
     prevMessagesCountRef.current = currentCount;
 
     // Only respond to actual message additions or new session loading
-    if (currentCount > prevCount) {
+    if (currentCount > prevCount && prevCount > 0) {
       if (isNearBottomRef.current || session.status === 'COMPLETED') {
         scrollChatToBottom('smooth');
       } else {
         setHasUnreadBelow(true);
       }
     } else if (prevCount === 0 && currentCount > 0) {
-      // First mount or session reset
-      scrollChatToBottom('auto');
+      // First mount or session reset: ensure scrolled to top
+      if (chatScrollContainerRef.current) {
+        chatScrollContainerRef.current.scrollTo({ top: 0, behavior: 'auto' });
+      }
     }
   }, [session.messages.length, session.id, session.status]);
 
