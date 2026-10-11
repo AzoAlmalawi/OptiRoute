@@ -36,22 +36,22 @@ export const ScenarioSelector: React.FC<ScenarioSelectorProps> = ({
           return (
             <div
               key={sc.id}
-              className={`p-3.5 rounded-xl border transition-all text-left rtl:text-right flex flex-col justify-between ${
+              className={`p-3.5 rounded-xl border transition-all text-left rtl:text-right flex flex-col justify-between h-full ${
                 isSelected
                   ? 'border-[#087F8C] bg-white ring-2 ring-[#087F8C]/20 shadow-xs'
                   : 'border-slate-200 bg-white hover:border-[#087F8C]/50 hover:shadow-xs'
               }`}
             >
-              <div>
+              <div className="flex-1 flex flex-col">
                 <h3 className="font-semibold text-xs sm:text-sm text-[#172B3A] line-clamp-1">
                   {language === 'ar' ? sc.titleAr : sc.titleEn}
                 </h3>
 
-                <p className="text-xs text-slate-500 mt-1 line-clamp-1 leading-normal">
+                <p className="text-xs text-slate-500 mt-1 line-clamp-2 leading-relaxed min-h-[2.5rem]">
                   {language === 'ar' ? sc.descriptionAr : sc.descriptionEn}
                 </p>
 
-                <div className="mt-2.5 flex items-center gap-1.5 text-[11px] text-[#087F8C] font-medium">
+                <div className="mt-auto pt-2.5 flex items-center gap-1.5 text-[11px] text-[#087F8C] font-medium">
                   <Mic className="w-3.5 h-3.5 shrink-0" />
                   <span>
                     {language === 'ar' ? 'تسجيل تجريبي جاهز' : 'Prepared demo audio'}
