@@ -8,6 +8,7 @@ interface AudioPlayerSimProps {
   transcript?: string;
   language: Language;
   audioUrl?: string;
+  onEnded?: () => void;
 }
 
 export const AudioPlayerSim: React.FC<AudioPlayerSimProps> = ({
@@ -15,6 +16,7 @@ export const AudioPlayerSim: React.FC<AudioPlayerSimProps> = ({
   transcript,
   language,
   audioUrl,
+  onEnded,
 }) => {
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentTime, setCurrentTime] = useState(0);
@@ -23,6 +25,8 @@ export const AudioPlayerSim: React.FC<AudioPlayerSimProps> = ({
   const [showTranscriptFallback, setShowTranscriptFallback] = useState(false);
   const [isTranscriptOpen, setIsTranscriptOpen] = useState(false);
   const audioRef = useRef<HTMLAudioElement | null>(null);
+  const onEndedRef = useRef(onEnded);
+  onEndedRef.current = onEnded;
 
   // If audioUrl is present, attach audio element lifecycle
   useEffect(() => {
@@ -45,9 +49,12 @@ export const AudioPlayerSim: React.FC<AudioPlayerSimProps> = ({
       setCurrentTime(audio.currentTime);
     };
 
-    const onEnded = () => {
+    const handleEnded = () => {
       setIsPlaying(false);
       setCurrentTime(0);
+      if (onEndedRef.current) {
+        onEndedRef.current();
+      }
     };
 
     const onError = () => {
@@ -57,14 +64,14 @@ export const AudioPlayerSim: React.FC<AudioPlayerSimProps> = ({
 
     audio.addEventListener('loadedmetadata', onLoadedMetadata);
     audio.addEventListener('timeupdate', onTimeUpdate);
-    audio.addEventListener('ended', onEnded);
+    audio.addEventListener('ended', handleEnded);
     audio.addEventListener('error', onError);
 
     return () => {
       audio.pause();
       audio.removeEventListener('loadedmetadata', onLoadedMetadata);
       audio.removeEventListener('timeupdate', onTimeUpdate);
-      audio.removeEventListener('ended', onEnded);
+      audio.removeEventListener('ended', handleEnded);
       audio.removeEventListener('error', onError);
       audioRef.current = null;
     };

@@ -62,6 +62,10 @@ export const TRANSLATIONS = {
     pendingReview: 'قيد الانتظار',
     noSessionsFound: 'لا توجد جلسات تطابق البحث',
     resetDemoData: 'إعادة تعيين البيانات الافتراضية',
+    autoDemoBanner: 'عرض تلقائي — إجابات مريض معدّة مسبقًا',
+    pauseAutoDemo: 'إيقاف مؤقت',
+    resumeAutoDemo: 'استئناف',
+    stopAutoDemo: 'إنهاء العرض التلقائي',
   },
   en: {
     appTitle: 'OptiRoute',
@@ -126,5 +130,9 @@ export const TRANSLATIONS = {
     pendingReview: 'Pending',
     noSessionsFound: 'No sessions matching current filters',
     resetDemoData: 'Reset Demo Data',
+    autoDemoBanner: 'Automatic demo — scripted patient replies',
+    pauseAutoDemo: 'Pause',
+    resumeAutoDemo: 'Resume',
+    stopAutoDemo: 'Stop auto demo',
   },
 };

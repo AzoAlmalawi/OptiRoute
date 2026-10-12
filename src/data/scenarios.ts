@@ -26,6 +26,18 @@ export const DEMO_SCENARIOS: DemoScenario[] = [
       pain: 'لا يوجد ألم شديد، المشكلة الأساسية في السواد والستارة',
       trauma: 'لا، لم أتعرض لأي ضربة',
     },
+    scriptedAnswers: {
+      pain_level: {
+        textAr: 'لا يوجد ألم',
+        textEn: 'No pain',
+        quickReplyValue: 'pain_level:none',
+      },
+      trauma: {
+        textAr: 'لا، لم أتعرض لإصابة',
+        textEn: 'No, no injury',
+        quickReplyValue: 'trauma:false',
+      },
+    },
   },
   {
     id: 'sc-2-chemical-splash',
@@ -48,6 +60,7 @@ export const DEMO_SCENARIOS: DemoScenario[] = [
     expectedUrgency: 'EMERGENCY',
     expectedRuleId: 'RF-02',
     followUpAnswers: {},
+    scriptedAnswers: {},
   },
   {
     id: 'sc-3-eye-trauma',
@@ -70,6 +83,7 @@ export const DEMO_SCENARIOS: DemoScenario[] = [
     expectedUrgency: 'EMERGENCY',
     expectedRuleId: 'RF-03',
     followUpAnswers: {},
+    scriptedAnswers: {},
   },
   {
     id: 'sc-4-same-day-urgent',
@@ -93,6 +107,23 @@ export const DEMO_SCENARIOS: DemoScenario[] = [
     followUpAnswers: {
       lenses: 'نعم نزعت العدسة فوراً',
       pain: 'الألم متوسط ويزيد مع فتح العين',
+    },
+    scriptedAnswers: {
+      contact_lens: {
+        textAr: 'نعم ألبس عدسات',
+        textEn: 'Yes, wear lenses',
+        quickReplyValue: 'contact_lens:true',
+      },
+      vision_change: {
+        textAr: 'النظر طبيعي',
+        textEn: 'Vision is normal',
+        quickReplyValue: 'vision_change:none',
+      },
+      pain_level: {
+        textAr: 'ألم خفيف أو حكة',
+        textEn: 'Mild / Itch',
+        quickReplyValue: 'pain_level:mild',
+      },
     },
   },
   {
@@ -118,6 +149,33 @@ export const DEMO_SCENARIOS: DemoScenario[] = [
       vision: 'النظر طبيعي تماماً',
       duration: 'من أسبوعين مستمر',
     },
+    scriptedAnswers: {
+      vision_change: {
+        textAr: 'النظر طبيعي',
+        textEn: 'Vision is normal',
+        quickReplyValue: 'vision_change:none',
+      },
+      pain_level: {
+        textAr: 'لا يوجد ألم',
+        textEn: 'No pain',
+        quickReplyValue: 'pain_level:none',
+      },
+      contact_lens: {
+        textAr: 'لا أرتدي عدسات',
+        textEn: 'No lenses',
+        quickReplyValue: 'contact_lens:false',
+      },
+      trauma: {
+        textAr: 'لا، لم أتعرض لإصابة',
+        textEn: 'No, no injury',
+        quickReplyValue: 'trauma:false',
+      },
+      chemical_exposure: {
+        textAr: 'لا، لم تدخل مواد كيميائية',
+        textEn: 'No chemical exposure',
+        quickReplyValue: 'chemical_exposure:false',
+      },
+    },
   },
   {
     id: 'sc-6-unclear-incomplete',
@@ -140,6 +198,28 @@ export const DEMO_SCENARIOS: DemoScenario[] = [
     expectedUrgency: 'URGENT',
     followUpAnswers: {
       pain: 'فيه ألم خفيف وتشويش بسيط بدأ الصباح',
+    },
+    scriptedAnswers: {
+      vision_change: {
+        textAr: 'ضبابية وتشويش',
+        textEn: 'Blurry vision',
+        quickReplyValue: 'vision_change:blurred',
+      },
+      pain_level: {
+        textAr: 'ألم خفيف أو حكة',
+        textEn: 'Mild / Itch',
+        quickReplyValue: 'pain_level:mild',
+      },
+      trauma: {
+        textAr: 'لا، لم أتعرض لإصابة',
+        textEn: 'No, no injury',
+        quickReplyValue: 'trauma:false',
+      },
+      chemical_exposure: {
+        textAr: 'لا، لم تدخل مواد كيميائية',
+        textEn: 'No chemical exposure',
+        quickReplyValue: 'chemical_exposure:false',
+      },
     },
   },
 ];

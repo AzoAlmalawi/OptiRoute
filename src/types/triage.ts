@@ -216,6 +216,12 @@ export interface TriageSession {
   };
 }
 
+export interface ScenarioScriptedAnswer {
+  textAr: string;
+  textEn: string;
+  quickReplyValue?: string;
+}
+
 export interface DemoScenario {
   id: string;
   titleAr: string;
@@ -237,4 +243,5 @@ export interface DemoScenario {
   expectedUrgency: UrgencyLevel;
   expectedRuleId?: string;
   followUpAnswers?: Record<string, string>;
+  scriptedAnswers?: Record<string, ScenarioScriptedAnswer>;
 }

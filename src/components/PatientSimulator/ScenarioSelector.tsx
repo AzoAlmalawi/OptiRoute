@@ -5,7 +5,7 @@ import { Mic, Play } from 'lucide-react';
 
 interface ScenarioSelectorProps {
   language: Language;
-  onSelectScenario: (scenario: DemoScenario) => void;
+  onSelectScenario: (scenario: DemoScenario, autoPlay?: boolean) => void;
   activeScenarioId?: string;
   queuedScenarioId?: string;
   consentGiven?: boolean;
@@ -71,15 +71,31 @@ export const ScenarioSelector: React.FC<ScenarioSelectorProps> = ({
                 </div>
               </div>
 
-              <button
-                type="button"
-                disabled={disabled}
-                onClick={() => onSelectScenario(sc)}
-                className="mt-3 w-full inline-flex items-center justify-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-lg bg-[#087F8C] hover:bg-[#066670] active:bg-[#055159] text-white transition-colors disabled:opacity-40 cursor-pointer shadow-2xs"
-              >
-                <Play className="w-3 h-3 fill-current" />
-                <span>{language === 'ar' ? 'ابدأ التجربة' : 'Start demo'}</span>
-              </button>
+              <div className="mt-3 flex items-center gap-2">
+                <button
+                  type="button"
+                  disabled={disabled}
+                  onClick={() => onSelectScenario(sc, false)}
+                  className="flex-1 inline-flex items-center justify-center gap-1.5 px-2.5 py-1.5 text-xs font-semibold rounded-lg bg-[#087F8C] hover:bg-[#066670] active:bg-[#055159] text-white transition-colors disabled:opacity-40 cursor-pointer shadow-2xs"
+                >
+                  <Play className="w-3 h-3 fill-current" />
+                  <span>{language === 'ar' ? 'ابدأ التجربة' : 'Start demo'}</span>
+                </button>
+                <button
+                  type="button"
+                  disabled={disabled}
+                  onClick={() => onSelectScenario(sc, true)}
+                  title={
+                    language === 'ar'
+                      ? 'تشغيل تلقائي للحالة مع إجابات المريض المبرمجة'
+                      : 'Automatic playback with scripted patient follow-up replies'
+                  }
+                  className="flex-1 inline-flex items-center justify-center gap-1.5 px-2.5 py-1.5 text-xs font-semibold rounded-lg bg-teal-50 hover:bg-teal-100 text-[#087F8C] border border-[#087F8C]/30 hover:border-[#087F8C] transition-colors disabled:opacity-40 cursor-pointer shadow-2xs"
+                >
+                  <span>⚡</span>
+                  <span>{language === 'ar' ? 'عرض تلقائي' : 'Auto demo'}</span>
+                </button>
+              </div>
             </div>
           );
         })}

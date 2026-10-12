@@ -31,6 +31,9 @@ export default function App() {
   const [showRoadmap, setShowRoadmap] = useState(false);
   const [activeScenarioId, setActiveScenarioId] = useState<string | undefined>(undefined);
   const [queuedScenario, setQueuedScenario] = useState<DemoScenario | null>(null);
+  const [isAutoPlayback, setIsAutoPlayback] = useState(false);
+  const [isAutoPaused, setIsAutoPaused] = useState(false);
+  const [queuedAutoPlay, setQueuedAutoPlay] = useState(false);
 
   // Collapsible panels state for demo cases and decision inspection drawer
   const [scenariosOpen, setScenariosOpen] = useState(false);
@@ -169,7 +172,12 @@ export default function App() {
       // If user accepted consent and had queued a scenario, process only the newly selected scenario
       if (granted && queuedScenario) {
         const scenarioToRun = queuedScenario;
+        const willAutoPlay = queuedAutoPlay;
         setQueuedScenario(null);
+        setQueuedAutoPlay(false);
+        setIsAutoPlayback(willAutoPlay);
+        setIsAutoPaused(false);
+
         const cityToUse = scenarioToRun.locationCity || selectedCity;
         if (scenarioToRun.locationCity) {
           setSelectedCity(scenarioToRun.locationCity);
@@ -190,6 +198,10 @@ export default function App() {
           audioUrl,
           language
         );
+      } else if (!granted) {
+        setIsAutoPlayback(false);
+        setIsAutoPaused(false);
+        setQueuedAutoPlay(false);
       }
       await loadSessions();
     } finally {
@@ -198,28 +210,22 @@ export default function App() {
   };
 
   // Handle selecting a synthetic demo scenario:
-  // Strictly isolates demo scenarios:
-  // 1. Create a fresh session with a new ID
-  // 2. Preserve previous sessions in the dashboard
-  // 3. Reset symptoms to unknown, conversation history, follow-up count, rule findings, classifier output, urgency, and routing
-  // 4. Queue the selected scenario and require explicit consent before processing it
-  // 5. After consent, process only the newly selected scenario
-  const handleSelectScenario = async (scenario: DemoScenario) => {
+  const handleSelectScenario = async (scenario: DemoScenario, autoPlay: boolean = false) => {
     setIsProcessing(true);
     try {
-      // 1, 2, 3: Create a fresh session with a new ID and reset state
-      // (created in memory; will be saved into repository upon consent/interaction)
       const freshSession = await orchestrator.createNewSession(language, false, scenario.id);
       updateActiveSession(freshSession);
 
-      // 4: Queue the selected scenario and require explicit consent before processing it
       setActiveScenarioId(scenario.id);
       setQueuedScenario(scenario);
+      setQueuedAutoPlay(autoPlay);
+      setIsAutoPlayback(false);
+      setIsAutoPaused(false);
+
       if (scenario.locationCity) {
         setSelectedCity(scenario.locationCity);
       }
 
-      // Sync sessions in state
       await loadSessions();
     } finally {
       setIsProcessing(false);
@@ -230,6 +236,9 @@ export default function App() {
   const handleResetSession = async () => {
     setActiveScenarioId(undefined);
     setQueuedScenario(null);
+    setQueuedAutoPlay(false);
+    setIsAutoPlayback(false);
+    setIsAutoPaused(false);
     setDecisionDrawerOpen(false);
     setIsProcessing(true);
     try {
@@ -432,8 +441,8 @@ export default function App() {
                 </div>
                 <ScenarioSelector
                   language={language}
-                  onSelectScenario={(sc) => {
-                    handleSelectScenario(sc);
+                  onSelectScenario={(sc, autoPlay) => {
+                    handleSelectScenario(sc, autoPlay);
                     setScenariosOpen(false); // Collapses immediately after selection
                   }}
                   activeScenarioId={activeScenarioId}
@@ -490,6 +499,13 @@ export default function App() {
                     onViewCaseInDashboard={(sessionId) => {
                       setInspectedDashboardSessionId(sessionId);
                       setCurrentTab('dashboard');
+                    }}
+                    isAutoPlayback={isAutoPlayback}
+                    isAutoPaused={isAutoPaused}
+                    onToggleAutoPause={() => setIsAutoPaused((prev) => !prev)}
+                    onStopAutoPlayback={() => {
+                      setIsAutoPlayback(false);
+                      setIsAutoPaused(false);
                     }}
                   />
                 )}

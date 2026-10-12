@@ -7,6 +7,7 @@ import {
   StructuredSymptoms,
 } from '../../types/triage';
 import { DEMO_CITIES } from '../../data/facilities';
+import { DEMO_SCENARIOS } from '../../data/scenarios';
 import { TRANSLATIONS } from '../../data/translations';
 import { AudioPlayerSim } from './AudioPlayerSim';
 import { ConversationProgressIndicator } from './ConversationProgressIndicator';
@@ -29,6 +30,8 @@ import {
   Check,
   X,
   ArrowDown,
+  Play,
+  Pause,
 } from 'lucide-react';
 
 interface WhatsAppSimulatorProps {
@@ -56,6 +59,10 @@ interface WhatsAppSimulatorProps {
     labelEn: string
   ) => void;
   onViewCaseInDashboard?: (sessionId: string) => void;
+  isAutoPlayback?: boolean;
+  isAutoPaused?: boolean;
+  onToggleAutoPause?: () => void;
+  onStopAutoPlayback?: () => void;
 }
 
 export const WhatsAppSimulator: React.FC<WhatsAppSimulatorProps> = ({
@@ -70,6 +77,10 @@ export const WhatsAppSimulator: React.FC<WhatsAppSimulatorProps> = ({
   queuedScenarioTitle,
   onCorrectField,
   onViewCaseInDashboard,
+  isAutoPlayback = false,
+  isAutoPaused = false,
+  onToggleAutoPause,
+  onStopAutoPlayback,
 }) => {
   const [inputText, setInputText] = useState('');
   const [isRecordingSim, setIsRecordingSim] = useState(false);
@@ -79,9 +90,20 @@ export const WhatsAppSimulator: React.FC<WhatsAppSimulatorProps> = ({
   const [summaryExpanded, setSummaryExpanded] = useState<Record<string, boolean>>({});
   const [correctingField, setCorrectingField] = useState<keyof StructuredSymptoms | null>(null);
   const [hasUnreadBelow, setHasUnreadBelow] = useState(false);
+  const [audioHasFinished, setAudioHasFinished] = useState(false);
   const chatScrollContainerRef = useRef<HTMLDivElement>(null);
   const prevMessagesCountRef = useRef<number>(session.messages.length);
   const isNearBottomRef = useRef<boolean>(true);
+  const autoTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const lastAutoSubmittedMsgIdRef = useRef<string | null>(null);
+
+  // Clear any scheduled auto playback timers
+  const clearAutoTimer = () => {
+    if (autoTimeoutRef.current) {
+      clearTimeout(autoTimeoutRef.current);
+      autoTimeoutRef.current = null;
+    }
+  };
 
   // Reset expandable panels, correction mode, and scroll position when a new session is loaded
   useEffect(() => {
@@ -91,10 +113,16 @@ export const WhatsAppSimulator: React.FC<WhatsAppSimulatorProps> = ({
     setInputText('');
     setIsRecordingSim(false);
     setRecordingSeconds(0);
+    setAudioHasFinished(false);
+    lastAutoSubmittedMsgIdRef.current = null;
+    clearAutoTimer();
     // On new session (e.g. reload or fresh demo), reset internal scroll to top
     if (chatScrollContainerRef.current) {
       chatScrollContainerRef.current.scrollTo({ top: 0, behavior: 'auto' });
     }
+    return () => {
+      clearAutoTimer();
+    };
   }, [session.id]);
 
   // Helper to scroll only the chat internal container to bottom without moving the outer page
@@ -156,6 +184,9 @@ export const WhatsAppSimulator: React.FC<WhatsAppSimulatorProps> = ({
   const handleSendText = (e?: React.FormEvent) => {
     if (e) e.preventDefault();
     if (!inputText.trim() || isLoading) return;
+    if (isAutoPlayback && !isAutoPaused && onToggleAutoPause) {
+      onToggleAutoPause();
+    }
     onSendMessage(inputText.trim(), false);
     setInputText('');
   };
@@ -164,6 +195,9 @@ export const WhatsAppSimulator: React.FC<WhatsAppSimulatorProps> = ({
     if (isRecordingSim) {
       // Finish recording and send
       setIsRecordingSim(false);
+      if (isAutoPlayback && !isAutoPaused && onToggleAutoPause) {
+        onToggleAutoPause();
+      }
       const sampleVoiceText =
         session.language === 'ar'
           ? 'عندي ألم شديد في عيني اليسار مع احمرار وتشوش مفاجئ بالنظر من ساعة.'
@@ -185,6 +219,9 @@ export const WhatsAppSimulator: React.FC<WhatsAppSimulatorProps> = ({
     } else if (reply.value === 'CONSENT_DECLINED') {
       onConsent(false);
     } else {
+      if (isAutoPlayback && !isAutoPaused && onToggleAutoPause) {
+        onToggleAutoPause();
+      }
       const activeConvLang = session.conversationLanguage || language;
       const displayLabel = activeConvLang === 'ar' ? reply.labelAr : reply.labelEn;
       onSendMessage(
@@ -198,6 +235,117 @@ export const WhatsAppSimulator: React.FC<WhatsAppSimulatorProps> = ({
       );
     }
   };
+
+  // Find scenario definition if active session belongs to a prepared demo
+  const currentScenario = DEMO_SCENARIOS.find((sc) => sc.id === session.scenarioId);
+
+  // Auto-playback driver effect
+  useEffect(() => {
+    // If not in auto playback mode, or paused, or loading, or session completed, clear timer and do nothing
+    if (!isAutoPlayback || isAutoPaused || isLoading || !session.consentGiven) {
+      clearAutoTimer();
+      return;
+    }
+
+    if (session.status === 'COMPLETED' || (session.decision && session.decision.finalUrgency === 'EMERGENCY')) {
+      clearAutoTimer();
+      return;
+    }
+
+    // Only proceed if session has reached FOLLOW_UP status
+    if (session.status !== 'FOLLOW_UP') {
+      clearAutoTimer();
+      return;
+    }
+
+    // If initial scenario had a voice note and audio has not finished yet, wait for audio
+    if (currentScenario?.isVoiceSample && !audioHasFinished) {
+      clearAutoTimer();
+      return;
+    }
+
+    // Find the latest unanswered bot follow-up question
+    const latestFollowUpMsg = [...session.messages]
+      .reverse()
+      .find(
+        (m) =>
+          m.sender === 'bot' &&
+          m.quickReplies &&
+          m.quickReplies.length > 0 &&
+          !m.isAnswered
+      );
+
+    if (!latestFollowUpMsg || !latestFollowUpMsg.quickReplies) {
+      clearAutoTimer();
+      return;
+    }
+
+    // Prevent duplicate submission for the same message ID
+    if (lastAutoSubmittedMsgIdRef.current === latestFollowUpMsg.id) {
+      return;
+    }
+
+    // Determine the field being asked
+    const targetField = latestFollowUpMsg.quickReplies[0]?.field as string | undefined;
+    if (!targetField) {
+      clearAutoTimer();
+      return;
+    }
+
+    // Check if scenario has a scripted answer for this field
+    const scriptedAnswer = currentScenario?.scriptedAnswers?.[targetField];
+    if (!scriptedAnswer) {
+      // No predefined scripted answer for this question; pause auto mode cleanly so user can answer
+      if (onToggleAutoPause) {
+        onToggleAutoPause();
+      }
+      clearAutoTimer();
+      return;
+    }
+
+    // Find matching quick reply option
+    const matchingOption = latestFollowUpMsg.quickReplies.find(
+      (opt) =>
+        opt.value === scriptedAnswer.quickReplyValue ||
+        (opt.field === targetField &&
+          String(opt.fieldValue) === String(scriptedAnswer.quickReplyValue?.split(':')[1]))
+    ) || latestFollowUpMsg.quickReplies[0];
+
+    // Wait a realistic, readable delay (1500ms) before submitting the scripted patient answer
+    clearAutoTimer();
+    autoTimeoutRef.current = setTimeout(() => {
+      lastAutoSubmittedMsgIdRef.current = latestFollowUpMsg.id;
+      const convLang = session.conversationLanguage || language;
+      const responseText = convLang === 'ar' ? scriptedAnswer.textAr : scriptedAnswer.textEn;
+
+      onSendMessage(
+        responseText,
+        false,
+        undefined,
+        undefined,
+        undefined,
+        matchingOption,
+        latestFollowUpMsg.id
+      );
+    }, 1500);
+
+    return () => {
+      clearAutoTimer();
+    };
+  }, [
+    isAutoPlayback,
+    isAutoPaused,
+    isLoading,
+    session.status,
+    session.messages,
+    session.consentGiven,
+    session.conversationLanguage,
+    audioHasFinished,
+    currentScenario,
+    language,
+    onSendMessage,
+    onToggleAutoPause,
+  ]);
 
   const handleBrowserLocation = () => {
     if (navigator.geolocation) {
@@ -310,6 +458,60 @@ export const WhatsAppSimulator: React.FC<WhatsAppSimulatorProps> = ({
 
       {/* Compact Conversation Progress Indicator */}
       <ConversationProgressIndicator session={session} language={language} />
+
+      {/* Auto-demo active banner with Pause/Resume and Stop controls */}
+      {isAutoPlayback && session.consentGiven && session.status !== 'COMPLETED' && (
+        <div className="bg-gradient-to-r from-teal-900 via-teal-800 to-teal-900 text-white px-3 py-1.5 flex items-center justify-between text-xs border-b border-teal-700/60 shadow-xs z-10 animate-fadeIn">
+          <div className="flex items-center gap-1.5 min-w-0">
+            <span className="w-2 h-2 rounded-full bg-teal-300 animate-pulse shrink-0" />
+            <span className="font-medium truncate text-[11px] sm:text-xs">
+              {TRANSLATIONS[language]?.autoDemoBanner ||
+                (language === 'ar'
+                  ? 'عرض تلقائي — إجابات مريض معدّة مسبقًا'
+                  : 'Automatic demo — scripted patient replies')}
+            </span>
+          </div>
+
+          <div className="flex items-center gap-1.5 shrink-0 rtl:mr-2 ltr:ml-2">
+            {onToggleAutoPause && (
+              <button
+                type="button"
+                onClick={onToggleAutoPause}
+                className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-semibold bg-white/15 hover:bg-white/25 active:bg-white/30 text-white transition-colors cursor-pointer border border-white/20"
+                title={
+                  isAutoPaused
+                    ? TRANSLATIONS[language]?.resumeAutoDemo || (language === 'ar' ? 'استئناف' : 'Resume')
+                    : TRANSLATIONS[language]?.pauseAutoDemo || (language === 'ar' ? 'إيقاف مؤقت' : 'Pause')
+                }
+              >
+                {isAutoPaused ? (
+                  <>
+                    <Play className="w-3 h-3 fill-current" />
+                    <span>{TRANSLATIONS[language]?.resumeAutoDemo || (language === 'ar' ? 'استئناف' : 'Resume')}</span>
+                  </>
+                ) : (
+                  <>
+                    <Pause className="w-3 h-3 fill-current" />
+                    <span>{TRANSLATIONS[language]?.pauseAutoDemo || (language === 'ar' ? 'إيقاف مؤقت' : 'Pause')}</span>
+                  </>
+                )}
+              </button>
+            )}
+
+            {onStopAutoPlayback && (
+              <button
+                type="button"
+                onClick={onStopAutoPlayback}
+                className="inline-flex items-center justify-center p-1 rounded text-[11px] text-teal-200 hover:text-white hover:bg-white/10 transition-colors cursor-pointer"
+                title={TRANSLATIONS[language]?.stopAutoDemo || (language === 'ar' ? 'إنهاء العرض التلقائي' : 'Stop auto demo')}
+                aria-label="Stop auto demo"
+              >
+                <X className="w-3.5 h-3.5" />
+              </button>
+            )}
+          </div>
+        </div>
+      )}
 
       {/* WhatsApp Chat Wallpaper / Background - #F5F7FA */}
       <div
@@ -1292,6 +1494,9 @@ export const WhatsAppSimulator: React.FC<WhatsAppSimulatorProps> = ({
                     transcript={msg.transcript}
                     language={msg.audioLanguage || session.language || language}
                     audioUrl={msg.audioUrl}
+                    onEnded={() => {
+                      setAudioHasFinished(true);
+                    }}
                   />
                 ) : (
                   <p className="whitespace-pre-line leading-relaxed text-[14px] sm:text-[15px] font-normal text-[#172B3A]">
