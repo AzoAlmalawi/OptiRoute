@@ -62,6 +62,8 @@ interface WhatsAppSimulatorProps {
   isAutoPlayback?: boolean;
   isAutoPaused?: boolean;
   onToggleAutoPause?: () => void;
+  onPauseAutoPlayback?: () => void;
+  onResumeAutoPlayback?: () => void;
   onStopAutoPlayback?: () => void;
 }
 
@@ -80,6 +82,8 @@ export const WhatsAppSimulator: React.FC<WhatsAppSimulatorProps> = ({
   isAutoPlayback = false,
   isAutoPaused = false,
   onToggleAutoPause,
+  onPauseAutoPlayback,
+  onResumeAutoPlayback,
   onStopAutoPlayback,
 }) => {
   const [inputText, setInputText] = useState('');
@@ -91,6 +95,7 @@ export const WhatsAppSimulator: React.FC<WhatsAppSimulatorProps> = ({
   const [correctingField, setCorrectingField] = useState<keyof StructuredSymptoms | null>(null);
   const [hasUnreadBelow, setHasUnreadBelow] = useState(false);
   const [audioHasFinished, setAudioHasFinished] = useState(false);
+  const [audioIsPlaying, setAudioIsPlaying] = useState(false);
   const chatScrollContainerRef = useRef<HTMLDivElement>(null);
   const prevMessagesCountRef = useRef<number>(session.messages.length);
   const isNearBottomRef = useRef<boolean>(true);
@@ -105,6 +110,25 @@ export const WhatsAppSimulator: React.FC<WhatsAppSimulatorProps> = ({
     }
   };
 
+  // Helper to pause auto-playback immediately (called when typing or explicitly pausing)
+  const triggerPauseAuto = () => {
+    clearAutoTimer();
+    if (onPauseAutoPlayback) {
+      onPauseAutoPlayback();
+    } else if (onToggleAutoPause && !isAutoPaused) {
+      onToggleAutoPause();
+    }
+  };
+
+  // Helper to resume auto-playback explicitly
+  const triggerResumeAuto = () => {
+    if (onResumeAutoPlayback) {
+      onResumeAutoPlayback();
+    } else if (onToggleAutoPause && isAutoPaused) {
+      onToggleAutoPause();
+    }
+  };
+
   // Reset expandable panels, correction mode, and scroll position when a new session is loaded
   useEffect(() => {
     setShowTechnicalRules({});
@@ -114,6 +138,7 @@ export const WhatsAppSimulator: React.FC<WhatsAppSimulatorProps> = ({
     setIsRecordingSim(false);
     setRecordingSeconds(0);
     setAudioHasFinished(false);
+    setAudioIsPlaying(false);
     lastAutoSubmittedMsgIdRef.current = null;
     clearAutoTimer();
     // On new session (e.g. reload or fresh demo), reset internal scroll to top
@@ -181,11 +206,24 @@ export const WhatsAppSimulator: React.FC<WhatsAppSimulatorProps> = ({
     return () => clearInterval(timer);
   }, [isRecordingSim]);
 
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const val = e.target.value;
+    setInputText(val);
+
+    // 1. Pause when the user starts typing:
+    // On the first user edit in the message input (before sending), immediately cancel any pending
+    // automatic-reply timer and pause both automatic replies and audio.
+    // Clearing the input or sending a message does not automatically resume playback.
+    if (isAutoPlayback && !isAutoPaused) {
+      triggerPauseAuto();
+    }
+  };
+
   const handleSendText = (e?: React.FormEvent) => {
     if (e) e.preventDefault();
     if (!inputText.trim() || isLoading) return;
-    if (isAutoPlayback && !isAutoPaused && onToggleAutoPause) {
-      onToggleAutoPause();
+    if (isAutoPlayback && !isAutoPaused) {
+      triggerPauseAuto();
     }
     onSendMessage(inputText.trim(), false);
     setInputText('');
@@ -195,8 +233,8 @@ export const WhatsAppSimulator: React.FC<WhatsAppSimulatorProps> = ({
     if (isRecordingSim) {
       // Finish recording and send
       setIsRecordingSim(false);
-      if (isAutoPlayback && !isAutoPaused && onToggleAutoPause) {
-        onToggleAutoPause();
+      if (isAutoPlayback && !isAutoPaused) {
+        triggerPauseAuto();
       }
       const sampleVoiceText =
         session.language === 'ar'
@@ -204,6 +242,9 @@ export const WhatsAppSimulator: React.FC<WhatsAppSimulatorProps> = ({
           : 'I have severe pain in my left eye with marked redness and sudden blurred vision since one hour.';
       onSendMessage(sampleVoiceText, true, Math.max(4, recordingSeconds));
     } else {
+      if (isAutoPlayback && !isAutoPaused) {
+        triggerPauseAuto();
+      }
       setIsRecordingSim(true);
     }
   };
@@ -219,8 +260,8 @@ export const WhatsAppSimulator: React.FC<WhatsAppSimulatorProps> = ({
     } else if (reply.value === 'CONSENT_DECLINED') {
       onConsent(false);
     } else {
-      if (isAutoPlayback && !isAutoPaused && onToggleAutoPause) {
-        onToggleAutoPause();
+      if (isAutoPlayback && !isAutoPaused) {
+        triggerPauseAuto();
       }
       const activeConvLang = session.conversationLanguage || language;
       const displayLabel = activeConvLang === 'ar' ? reply.labelAr : reply.labelEn;
@@ -473,10 +514,10 @@ export const WhatsAppSimulator: React.FC<WhatsAppSimulatorProps> = ({
           </div>
 
           <div className="flex items-center gap-1.5 shrink-0 rtl:mr-2 ltr:ml-2">
-            {onToggleAutoPause && (
+            {(onToggleAutoPause || onPauseAutoPlayback) && (
               <button
                 type="button"
-                onClick={onToggleAutoPause}
+                onClick={isAutoPaused ? triggerResumeAuto : triggerPauseAuto}
                 className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-semibold bg-white/15 hover:bg-white/25 active:bg-white/30 text-white transition-colors cursor-pointer border border-white/20"
                 title={
                   isAutoPaused
@@ -1496,6 +1537,21 @@ export const WhatsAppSimulator: React.FC<WhatsAppSimulatorProps> = ({
                     audioUrl={msg.audioUrl}
                     onEnded={() => {
                       setAudioHasFinished(true);
+                      setAudioIsPlaying(false);
+                    }}
+                    isControlledPlaying={
+                      isAutoPlayback && !isAutoPaused && !audioHasFinished
+                        ? true
+                        : isAutoPaused
+                        ? false
+                        : undefined
+                    }
+                    onPlayStateChange={(playing) => {
+                      setAudioIsPlaying(playing);
+                      // If user clicks play/pause directly on the player while auto demo is active
+                      if (!playing && isAutoPlayback && !isAutoPaused && !audioHasFinished) {
+                        triggerPauseAuto();
+                      }
                     }}
                   />
                 ) : (
@@ -1632,7 +1688,7 @@ export const WhatsAppSimulator: React.FC<WhatsAppSimulatorProps> = ({
           <input
             type="text"
             value={inputText}
-            onChange={(e) => setInputText(e.target.value)}
+            onChange={handleInputChange}
             disabled={!session.consentGiven || isLoading}
             placeholder={
               !session.consentGiven

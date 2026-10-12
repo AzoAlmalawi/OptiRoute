@@ -9,6 +9,8 @@ interface AudioPlayerSimProps {
   language: Language;
   audioUrl?: string;
   onEnded?: () => void;
+  isControlledPlaying?: boolean;
+  onPlayStateChange?: (playing: boolean) => void;
 }
 
 export const AudioPlayerSim: React.FC<AudioPlayerSimProps> = ({
@@ -17,6 +19,8 @@ export const AudioPlayerSim: React.FC<AudioPlayerSimProps> = ({
   language,
   audioUrl,
   onEnded,
+  isControlledPlaying,
+  onPlayStateChange,
 }) => {
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentTime, setCurrentTime] = useState(0);
@@ -27,6 +31,30 @@ export const AudioPlayerSim: React.FC<AudioPlayerSimProps> = ({
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const onEndedRef = useRef(onEnded);
   onEndedRef.current = onEnded;
+
+  const onPlayStateChangeRef = useRef(onPlayStateChange);
+  onPlayStateChangeRef.current = onPlayStateChange;
+
+  // React to external controlled play/pause signals (e.g. from Auto-demo Pause/Resume button)
+  useEffect(() => {
+    if (isControlledPlaying === undefined || !audioRef.current || hasError) return;
+
+    if (isControlledPlaying && !isPlaying) {
+      audioRef.current
+        .play()
+        .then(() => {
+          setIsPlaying(true);
+          onPlayStateChangeRef.current?.(true);
+        })
+        .catch((err) => {
+          console.warn('Controlled audio play error:', err);
+        });
+    } else if (!isControlledPlaying && isPlaying) {
+      audioRef.current.pause();
+      setIsPlaying(false);
+      onPlayStateChangeRef.current?.(false);
+    }
+  }, [isControlledPlaying, hasError, isPlaying]);
 
   // If audioUrl is present, attach audio element lifecycle
   useEffect(() => {
@@ -52,6 +80,7 @@ export const AudioPlayerSim: React.FC<AudioPlayerSimProps> = ({
     const handleEnded = () => {
       setIsPlaying(false);
       setCurrentTime(0);
+      onPlayStateChangeRef.current?.(false);
       if (onEndedRef.current) {
         onEndedRef.current();
       }
@@ -60,6 +89,7 @@ export const AudioPlayerSim: React.FC<AudioPlayerSimProps> = ({
     const onError = () => {
       setHasError(true);
       setIsPlaying(false);
+      onPlayStateChangeRef.current?.(false);
     };
 
     audio.addEventListener('loadedmetadata', onLoadedMetadata);
@@ -84,16 +114,19 @@ export const AudioPlayerSim: React.FC<AudioPlayerSimProps> = ({
       if (isPlaying) {
         audioRef.current.pause();
         setIsPlaying(false);
+        onPlayStateChangeRef.current?.(false);
       } else {
         audioRef.current
           .play()
           .then(() => {
             setIsPlaying(true);
+            onPlayStateChangeRef.current?.(true);
           })
           .catch((err) => {
             console.warn('Audio playback error:', err);
             setHasError(true);
             setIsPlaying(false);
+            onPlayStateChangeRef.current?.(false);
           });
       }
     }

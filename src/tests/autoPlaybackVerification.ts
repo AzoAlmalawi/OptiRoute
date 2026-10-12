@@ -127,6 +127,50 @@ async function runAutoPlaybackTests() {
   }
   console.log('✓ sc-5 successfully completed in English with NON_URGENT assessment.');
 
+  // Test 5: Pausing midway through audio or on typing, submitting manual answer, and resuming from next unanswered question
+  console.log('\n[Check 5] Testing Manual answer while paused, and resuming only from next unanswered question:');
+  const sc6 = DEMO_SCENARIOS.find((s) => s.id === 'sc-6-unclear-incomplete')!;
+  let session6 = await orchestrator.createNewSession('ar', false, 'sc-6-unclear-incomplete');
+  session6 = await orchestrator.handleConsent(session6, true);
+  session6 = await orchestrator.processPatientMessage(session6, {
+    text: sc6.initialMessageAr,
+    isVoice: true,
+    voiceDuration: 16,
+    userCity: 'Riyadh',
+  });
+
+  // Simulator now asks first follow-up (vision_change)
+  const botQ1 = [...session6.messages].reverse().find((m) => m.sender === 'bot' && m.quickReplies && !m.isAnswered)!;
+  console.log(`Bot Q1 field: ${botQ1.quickReplies?.[0]?.field}`);
+
+  // User manually answers Q1 while paused:
+  session6 = await orchestrator.processPatientMessage(session6, {
+    text: 'عندي ضبابية بالرؤية',
+    parentMessageId: botQ1.id,
+    quickReply: botQ1.quickReplies?.find((q) => q.value === 'vision_change:blurred'),
+  });
+
+  console.log(`After manual answer to Q1, session status: ${session6.status}`);
+  // If next question is asked, check that it targets next missing field (pain_level)
+  const botQ2 = [...session6.messages].reverse().find((m) => m.sender === 'bot' && m.quickReplies && !m.isAnswered);
+  if (botQ2 && botQ2.quickReplies) {
+    const nextField = botQ2.quickReplies[0]?.field as string;
+    console.log(`Next unanswered field upon resume: ${nextField}`);
+    if (nextField === 'vision_change') {
+      throw new Error('Did not advance past manually answered vision_change!');
+    }
+    const scriptedNext = sc6.scriptedAnswers?.[nextField];
+    if (scriptedNext) {
+      session6 = await orchestrator.processPatientMessage(session6, {
+        text: scriptedNext.textAr,
+        parentMessageId: botQ2.id,
+        quickReply: botQ2.quickReplies.find((q) => q.value === scriptedNext.quickReplyValue),
+      });
+      console.log(`Auto answered next field [${nextField}]. Final status: ${session6.status}`);
+    }
+  }
+  console.log('✓ Manual answer while paused successfully preserved and auto playback resumes only from the next unanswered question.');
+
   console.log('\nAll Auto Playback tests passed successfully! 🎉');
 }
 

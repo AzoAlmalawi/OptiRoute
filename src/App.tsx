@@ -503,6 +503,8 @@ export default function App() {
                     isAutoPlayback={isAutoPlayback}
                     isAutoPaused={isAutoPaused}
                     onToggleAutoPause={() => setIsAutoPaused((prev) => !prev)}
+                    onPauseAutoPlayback={() => setIsAutoPaused(true)}
+                    onResumeAutoPlayback={() => setIsAutoPaused(false)}
                     onStopAutoPlayback={() => {
                       setIsAutoPlayback(false);
                       setIsAutoPaused(false);
