@@ -389,6 +389,53 @@ export function resolveQuickReplyFromInput(
   return null;
 }
 
+/**
+ * Detects the dominant language from patient text.
+ * - Arabic message → 'ar'
+ * - English message → 'en'
+ * - Mixed message → dominant language (if Arabic letters > English letters: 'ar'; if English > Arabic: 'en')
+ * - Short ambiguous replies, numbers, symbols, emojis → preserve currentConversationLanguage (or fallbackLanguage)
+ */
+export function detectMessageLanguage(
+  text: string,
+  currentConversationLang?: Language,
+  fallbackLanguage: Language = 'en'
+): Language {
+  if (!text || typeof text !== 'string') {
+    return currentConversationLang || fallbackLanguage;
+  }
+
+  // Count Arabic letters: [\u0600-\u06FF\u0750-\u077F\u08A0-\u08FF\uFB50-\uFDFF\uFE70-\uFEFF]
+  const arabicMatches = text.match(/[\u0600-\u06FF\u0750-\u077F\u08A0-\u08FF\uFB50-\uFDFF\uFE70-\uFEFF]/g);
+  const arabicCount = arabicMatches ? arabicMatches.length : 0;
+
+  // Count Latin letters: [a-zA-Z]
+  const englishMatches = text.match(/[a-zA-Z]/g);
+  const englishCount = englishMatches ? englishMatches.length : 0;
+
+  // Short ambiguous acknowledgment phrases and numbers/emojis preserve conversation language if established
+  const clean = text.trim().toLowerCase();
+  const ambiguousShortPhrases = new Set([
+    'ok', 'okay', 'k', 'yes', 'no', 'y', 'n', 'yep', 'nope', 'sure',
+    'نعم', 'لا', 'تمام', 'اوكي', 'أوكي', 'اي', 'إي', 'ايوا', 'ايوه', 'ماشي', 'حسنا', 'حسناً',
+  ]);
+  if (currentConversationLang && (ambiguousShortPhrases.has(clean) || clean.length <= 2)) {
+    return currentConversationLang;
+  }
+
+  // Meaningful text detection: require >= 3 characters of clear dominant script, or words that are clearly language-specific
+  if (arabicCount >= 2 && arabicCount > englishCount) {
+    return 'ar';
+  }
+
+  if (englishCount >= 3 && englishCount > arabicCount) {
+    return 'en';
+  }
+
+  // If ambiguous or equal, preserve current conversation language if present, else fallback
+  return currentConversationLang || fallbackLanguage;
+}
+
 export class TriageOrchestrator {
   private sttProvider = new DemoSpeechToTextProvider();
   private extractionProvider = new DemoSymptomExtractionProvider();
@@ -464,6 +511,7 @@ export class TriageOrchestrator {
       startedAt: now,
       updatedAt: now,
       language,
+      conversationLanguage: undefined,
       consentGiven: false,
       status: 'AWAITING_CONSENT',
       followUpCount: 0,
@@ -647,9 +695,38 @@ export class TriageOrchestrator {
         },
       });
 
-      // Use the localized label text for display
-      rawText = updated.language === 'ar' ? resolvedAction.labelAr : resolvedAction.labelEn;
+      // Display quick reply in current conversation language (fallback to UI language)
+      const currentActiveLang = updated.conversationLanguage || updated.language;
+      rawText = currentActiveLang === 'ar' ? resolvedAction.labelAr : resolvedAction.labelEn;
     }
+
+    // Determine the active conversation language for this turn:
+    // - For structured quick replies: preserve current conversation language (or UI language fallback)
+    // - For voice notes: use audioLanguage if specified, or detect from transcript/rawText
+    // - For text messages: detect language from raw text (dominant language; short ambiguous replies preserve prior language)
+    let effectiveConvLang: Language;
+    if (resolvedAction) {
+      effectiveConvLang = updated.conversationLanguage || updated.language;
+    } else if (params.isVoice) {
+      if (params.audioLanguage) {
+        effectiveConvLang = params.audioLanguage;
+      } else {
+        effectiveConvLang = detectMessageLanguage(
+          rawText,
+          updated.conversationLanguage,
+          updated.language
+        );
+      }
+    } else {
+      effectiveConvLang = detectMessageLanguage(
+        rawText,
+        updated.conversationLanguage,
+        updated.language
+      );
+    }
+
+    // Persist active conversation language on session state
+    updated.conversationLanguage = effectiveConvLang;
 
     // 1. Record incoming patient message
     const patientMsg: ChatMessage = {
@@ -658,9 +735,10 @@ export class TriageOrchestrator {
       type: resolvedAction ? 'quick_reply' : params.isVoice ? 'voice' : 'text',
       text: rawText,
       transcript: rawText,
+      conversationLanguage: effectiveConvLang,
       audioDurationSeconds: params.isVoice ? params.voiceDuration || 10 : undefined,
       audioUrl: params.isVoice ? params.audioUrl : undefined,
-      audioLanguage: params.isVoice ? (params.audioLanguage || updated.language) : undefined,
+      audioLanguage: params.isVoice ? (params.audioLanguage || effectiveConvLang) : undefined,
       timestamp: now,
     };
     updated.messages.push(patientMsg);
@@ -676,7 +754,7 @@ export class TriageOrchestrator {
         summaryEn: params.isVoice
           ? `Received voice note (${params.voiceDuration || 10}s)`
           : `Received patient text message`,
-        detail: { textSnippet: rawText.slice(0, 60) },
+        detail: { textSnippet: rawText.slice(0, 60), conversationLanguage: effectiveConvLang },
       });
     }
 
@@ -684,7 +762,7 @@ export class TriageOrchestrator {
     if (params.isVoice) {
       const transcription = await this.sttProvider.transcribe(
         rawText,
-        updated.language
+        effectiveConvLang
       );
       rawText = transcription.text;
       updated.events.push({
@@ -995,7 +1073,8 @@ export class TriageOrchestrator {
         id: `msg-${Date.now()}-followup`,
         sender: 'bot',
         type: 'text',
-        text: updated.language === 'ar' ? followUpQuestionAr : followUpQuestionEn,
+        conversationLanguage: effectiveConvLang,
+        text: effectiveConvLang === 'ar' ? followUpQuestionAr : followUpQuestionEn,
         quickReplies,
         timestamp: new Date().toISOString(),
       });
@@ -1070,18 +1149,19 @@ export class TriageOrchestrator {
       });
     }
 
-    // Bot message delivering Triage Result
+    // Bot message delivering Triage Result in the conversation language
     const resultCardMessage: ChatMessage = {
       id: `msg-${Date.now()}-card`,
       sender: 'bot',
       type: 'result_card',
+      conversationLanguage: effectiveConvLang,
       timestamp: new Date().toISOString(),
       decisionPayload: finalDecision,
       facilityPayload: routingResult.facility,
       routingExplanationAr: routingResult.explanationAr,
       routingExplanationEn: routingResult.explanationEn,
       text:
-        updated.language === 'ar'
+        effectiveConvLang === 'ar'
           ? `نتيجة الفرز الطبي: ${finalDecision.finalUrgency === 'EMERGENCY' ? '🚨 حالة طارئة' : finalDecision.finalUrgency === 'URGENT' ? '⚠️ تقييم عاجل (اليوم نفسه)' : 'ℹ️ غير عاجل'}\n${finalDecision.guidanceTextAr}`
           : `Triage Result: ${finalDecision.finalUrgency === 'EMERGENCY' ? '🚨 EMERGENCY' : finalDecision.finalUrgency === 'URGENT' ? '⚠️ URGENT (SAME DAY)' : 'ℹ️ NON-URGENT'}\n${finalDecision.guidanceTextEn}`,
     };
@@ -1183,18 +1263,20 @@ export class TriageOrchestrator {
     updated.status = 'COMPLETED';
 
     // 9. Update existing result card in messages or append new one
+    const convLang = updated.conversationLanguage || updated.language;
     const existingResultIndex = updated.messages.findIndex((m) => m.type === 'result_card');
     const resultCardMessage: ChatMessage = {
       id: existingResultIndex >= 0 ? updated.messages[existingResultIndex].id : `msg-${Date.now()}-card`,
       sender: 'bot',
       type: 'result_card',
+      conversationLanguage: convLang,
       timestamp: now,
       decisionPayload: finalDecision,
       facilityPayload: routingResult.facility,
       routingExplanationAr: routingResult.explanationAr,
       routingExplanationEn: routingResult.explanationEn,
       text:
-        updated.language === 'ar'
+        convLang === 'ar'
           ? `نتيجة الفرز الطبي: ${finalDecision.finalUrgency === 'EMERGENCY' ? '🚨 حالة طارئة' : finalDecision.finalUrgency === 'URGENT' ? '⚠️ تقييم عاجل (اليوم نفسه)' : 'ℹ️ غير عاجل'}\n${finalDecision.guidanceTextAr}`
           : `Triage Result: ${finalDecision.finalUrgency === 'EMERGENCY' ? '🚨 EMERGENCY' : finalDecision.finalUrgency === 'URGENT' ? '⚠️ URGENT (SAME DAY)' : 'ℹ️ NON-URGENT'}\n${finalDecision.guidanceTextEn}`,
     };

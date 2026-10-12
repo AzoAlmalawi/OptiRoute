@@ -185,7 +185,8 @@ export const WhatsAppSimulator: React.FC<WhatsAppSimulatorProps> = ({
     } else if (reply.value === 'CONSENT_DECLINED') {
       onConsent(false);
     } else {
-      const displayLabel = language === 'ar' ? reply.labelAr : reply.labelEn;
+      const activeConvLang = session.conversationLanguage || language;
+      const displayLabel = activeConvLang === 'ar' ? reply.labelAr : reply.labelEn;
       onSendMessage(
         displayLabel,
         false,
@@ -394,14 +395,15 @@ export const WhatsAppSimulator: React.FC<WhatsAppSimulatorProps> = ({
             const isUrgent = dec.finalUrgency === 'URGENT';
             const fac = msg.facilityPayload;
             const sym = session.symptoms;
+            const cardLang = msg.conversationLanguage || session.conversationLanguage || language;
 
             const formatFieldTriState = (val: boolean | null | undefined, labelAr: string, labelEn: string) => {
               if (val === true) {
                 return (
                   <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-emerald-800 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">
                     <Check className="w-3 h-3 text-emerald-600" />
-                    <span>{language === 'ar' ? labelAr : labelEn}:</span>
-                    <span>{language === 'ar' ? '(+) نعم' : '(+) Yes'}</span>
+                    <span>{cardLang === 'ar' ? labelAr : labelEn}:</span>
+                    <span>{cardLang === 'ar' ? '(+) نعم' : '(+) Yes'}</span>
                   </span>
                 );
               }
@@ -409,16 +411,16 @@ export const WhatsAppSimulator: React.FC<WhatsAppSimulatorProps> = ({
                 return (
                   <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-slate-700 bg-slate-100 px-2 py-0.5 rounded border border-slate-200">
                     <X className="w-3 h-3 text-slate-500" />
-                    <span>{language === 'ar' ? labelAr : labelEn}:</span>
-                    <span>{language === 'ar' ? '(-) لا' : '(-) No'}</span>
+                    <span>{cardLang === 'ar' ? labelAr : labelEn}:</span>
+                    <span>{cardLang === 'ar' ? '(-) لا' : '(-) No'}</span>
                   </span>
                 );
               }
               return (
                 <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-amber-800 bg-amber-50 px-2 py-0.5 rounded border border-amber-200">
                   <HelpCircle className="w-3 h-3 text-amber-500" />
-                  <span>{language === 'ar' ? labelAr : labelEn}:</span>
-                  <span>{language === 'ar' ? '(?) غير محدد' : '(?) Unknown'}</span>
+                  <span>{cardLang === 'ar' ? labelAr : labelEn}:</span>
+                  <span>{cardLang === 'ar' ? '(?) غير محدد' : '(?) Unknown'}</span>
                 </span>
               );
             };
@@ -426,56 +428,56 @@ export const WhatsAppSimulator: React.FC<WhatsAppSimulatorProps> = ({
             const formatVisionText = (val: string) => {
               switch (val) {
                 case 'none':
-                  return language === 'ar' ? 'طبيعي' : 'Normal';
+                  return cardLang === 'ar' ? 'طبيعي' : 'Normal';
                 case 'blurred':
-                  return language === 'ar' ? 'تشوش / ضبابية' : 'Blurred';
+                  return cardLang === 'ar' ? 'تشوش / ضبابية' : 'Blurred';
                 case 'loss':
-                  return language === 'ar' ? 'فقدان / ضعف شديد' : 'Loss / Severely reduced';
+                  return cardLang === 'ar' ? 'فقدان / ضعف شديد' : 'Loss / Severely reduced';
                 case 'double':
-                  return language === 'ar' ? 'ازدواجية الرؤية' : 'Double vision';
+                  return cardLang === 'ar' ? 'ازدواجية الرؤية' : 'Double vision';
                 case 'flashes_floaters':
-                  return language === 'ar' ? 'ومضات / شوائب' : 'Flashes / Floaters';
+                  return cardLang === 'ar' ? 'ومضات / شوائب' : 'Flashes / Floaters';
                 default:
-                  return language === 'ar' ? '(?) غير محدد' : '(?) Unknown';
+                  return cardLang === 'ar' ? '(?) غير محدد' : '(?) Unknown';
               }
             };
 
             const formatPainText = (val: string) => {
               switch (val) {
                 case 'none':
-                  return language === 'ar' ? 'لا يوجد ألم' : 'No pain';
+                  return cardLang === 'ar' ? 'لا يوجد ألم' : 'No pain';
                 case 'mild':
-                  return language === 'ar' ? 'ألم خفيف أو حكة' : 'Mild / Itch';
+                  return cardLang === 'ar' ? 'ألم خفيف أو حكة' : 'Mild / Itch';
                 case 'moderate':
-                  return language === 'ar' ? 'ألم متوسط' : 'Moderate';
+                  return cardLang === 'ar' ? 'ألم متوسط' : 'Moderate';
                 case 'severe':
-                  return language === 'ar' ? 'ألم شديد جداً' : 'Severe / Unbearable';
+                  return cardLang === 'ar' ? 'ألم شديد جداً' : 'Severe / Unbearable';
                 default:
-                  return language === 'ar' ? '(?) غير محدد' : '(?) Unknown';
+                  return cardLang === 'ar' ? '(?) غير محدد' : '(?) Unknown';
               }
             };
 
             const formatEyeText = (val: string) => {
               switch (val) {
                 case 'left':
-                  return language === 'ar' ? 'اليسرى' : 'Left';
+                  return cardLang === 'ar' ? 'اليسرى' : 'Left';
                 case 'right':
-                  return language === 'ar' ? 'اليمنى' : 'Right';
+                  return cardLang === 'ar' ? 'اليمنى' : 'Right';
                 case 'both':
-                  return language === 'ar' ? 'كلتا العينين' : 'Both eyes';
+                  return cardLang === 'ar' ? 'كلتا العينين' : 'Both eyes';
                 default:
-                  return language === 'ar' ? '(?) غير محدد' : '(?) Unknown';
+                  return cardLang === 'ar' ? '(?) غير محدد' : '(?) Unknown';
               }
             };
 
             const formatOnsetText = (val: string) => {
               switch (val) {
                 case 'sudden':
-                  return language === 'ar' ? 'مفاجئ (فجأة)' : 'Sudden';
+                  return cardLang === 'ar' ? 'مفاجئ (فجأة)' : 'Sudden';
                 case 'gradual':
-                  return language === 'ar' ? 'تدريجي' : 'Gradual';
+                  return cardLang === 'ar' ? 'تدريجي' : 'Gradual';
                 default:
-                  return language === 'ar' ? '(?) غير محدد' : '(?) Unknown';
+                  return cardLang === 'ar' ? '(?) غير محدد' : '(?) Unknown';
               }
             };
 
@@ -483,20 +485,20 @@ export const WhatsAppSimulator: React.FC<WhatsAppSimulatorProps> = ({
 
             // Generate a concise preview of confirmed findings or chief symptoms
             const summaryPreviewItems: string[] = [];
-            if (sym.chemical_exposure === true) summaryPreviewItems.push(language === 'ar' ? 'مادة كيميائية (+)' : 'Chemical splash (+)');
-            if (sym.trauma === true) summaryPreviewItems.push(language === 'ar' ? 'إصابة بالعين (+)' : 'Eye trauma (+)');
+            if (sym.chemical_exposure === true) summaryPreviewItems.push(cardLang === 'ar' ? 'مادة كيميائية (+)' : 'Chemical splash (+)');
+            if (sym.trauma === true) summaryPreviewItems.push(cardLang === 'ar' ? 'إصابة بالعين (+)' : 'Eye trauma (+)');
             if (sym.vision_change && sym.vision_change !== 'unknown' && sym.vision_change !== 'none') {
-              summaryPreviewItems.push(language === 'ar' ? `تغير رؤية: ${formatVisionText(sym.vision_change)}` : `Vision: ${formatVisionText(sym.vision_change)}`);
+              summaryPreviewItems.push(cardLang === 'ar' ? `تغير رؤية: ${formatVisionText(sym.vision_change)}` : `Vision: ${formatVisionText(sym.vision_change)}`);
             }
             if (sym.pain_level && sym.pain_level !== 'unknown' && sym.pain_level !== 'none') {
-              summaryPreviewItems.push(language === 'ar' ? `ألم: ${formatPainText(sym.pain_level)}` : `Pain: ${formatPainText(sym.pain_level)}`);
+              summaryPreviewItems.push(cardLang === 'ar' ? `ألم: ${formatPainText(sym.pain_level)}` : `Pain: ${formatPainText(sym.pain_level)}`);
             }
-            if (sym.contact_lens === true) summaryPreviewItems.push(language === 'ar' ? 'عدسات (+)' : 'Lenses (+)');
-            if (sym.light_sensitivity === true) summaryPreviewItems.push(language === 'ar' ? 'حساسية ضوء (+)' : 'Photophobia (+)');
-            if (sym.redness === true) summaryPreviewItems.push(language === 'ar' ? 'احمرار (+)' : 'Redness (+)');
-            if (sym.discharge === true) summaryPreviewItems.push(language === 'ar' ? 'إفرازات (+)' : 'Discharge (+)');
+            if (sym.contact_lens === true) summaryPreviewItems.push(cardLang === 'ar' ? 'عدسات (+)' : 'Lenses (+)');
+            if (sym.light_sensitivity === true) summaryPreviewItems.push(cardLang === 'ar' ? 'حساسية ضوء (+)' : 'Photophobia (+)');
+            if (sym.redness === true) summaryPreviewItems.push(cardLang === 'ar' ? 'احمرار (+)' : 'Redness (+)');
+            if (sym.discharge === true) summaryPreviewItems.push(cardLang === 'ar' ? 'إفرازات (+)' : 'Discharge (+)');
             if (summaryPreviewItems.length === 0) {
-              summaryPreviewItems.push(language === 'ar' ? 'تم تسجيل وتوثيق إجابات الفرز' : 'Triage answers recorded');
+              summaryPreviewItems.push(cardLang === 'ar' ? 'تم تسجيل وتوثيق إجابات الفرز' : 'Triage answers recorded');
             }
             const previewText = summaryPreviewItems.slice(0, 3).join(' • ');
 
@@ -526,7 +528,7 @@ export const WhatsAppSimulator: React.FC<WhatsAppSimulatorProps> = ({
                       <div>
                         <div className="flex items-center gap-1.5 leading-tight">
                           <span className="text-[12px] font-semibold text-slate-600 block">
-                            👁️ {language === 'ar' ? 'تقييم OptiRoute' : 'OptiRoute Assessment'}
+                            👁️ {cardLang === 'ar' ? 'تقييم OptiRoute' : 'OptiRoute Assessment'}
                           </span>
                         </div>
                         <span
@@ -539,14 +541,14 @@ export const WhatsAppSimulator: React.FC<WhatsAppSimulatorProps> = ({
                           }`}
                         >
                           {isEmergency
-                            ? language === 'ar'
+                            ? cardLang === 'ar'
                               ? 'طارئ (طوارئ عيون فورية)'
                               : 'EMERGENCY (Immediate Eye Care)'
                             : isUrgent
-                            ? language === 'ar'
+                            ? cardLang === 'ar'
                               ? 'عاجل — تقييم في اليوم نفسه'
                               : 'Urgent — Same-day evaluation'
-                            : language === 'ar'
+                            : cardLang === 'ar'
                             ? 'غير عاجل (رعاية أولية)'
                             : 'NON-URGENT (Primary Care)'}
                         </span>
@@ -557,19 +559,19 @@ export const WhatsAppSimulator: React.FC<WhatsAppSimulatorProps> = ({
                   {/* Immediate Action (if emergency chemical splash / trauma) */}
                   {!dec.isRetainedEmergency && (dec.immediateActionTextAr || dec.immediateActionTextEn) && (
                     <div className="bg-rose-50 text-rose-950 p-2.5 rounded-xl border border-rose-200 text-xs leading-relaxed font-semibold">
-                      {language === 'ar' ? dec.immediateActionTextAr : dec.immediateActionTextEn}
+                      {cardLang === 'ar' ? dec.immediateActionTextAr : dec.immediateActionTextEn}
                     </div>
                   )}
 
                   {/* 2. Brief Reason */}
                   <div className="space-y-1">
                     <span className="text-[10px] uppercase font-bold text-slate-500 tracking-wider block">
-                      {language === 'ar' ? 'سبب التقييم ومطابقة الأعراض:' : 'Assessment Reason:'}
+                      {cardLang === 'ar' ? 'سبب التقييم ومطابقة الأعراض:' : 'Assessment Reason:'}
                     </span>
                     <p className="text-[13px] leading-relaxed text-slate-700">
                       {dec.isRetainedEmergency ? (
                         <span className="text-amber-900 font-medium">
-                          {language === 'ar'
+                          {cardLang === 'ar'
                             ? dec.retainedEmergencyReasonAr ||
                               'تم تحديث إجابتك. بقيت توصية الطوارئ احترازيًا لأنها صدرت بناءً على إجابة سابقة، وفق سياسة النموذج التجريبي.'
                             : dec.retainedEmergencyReasonEn ||
@@ -577,19 +579,19 @@ export const WhatsAppSimulator: React.FC<WhatsAppSimulatorProps> = ({
                         </span>
                       ) : dec.ruleResult?.matchedFlags && dec.ruleResult.matchedFlags.length > 0 ? (
                         <span>
-                          {language === 'ar'
+                          {cardLang === 'ar'
                             ? `تم رصد مؤشرات حرجة: ${dec.ruleResult.matchedFlags.map((f) => f.titleAr).join('، ')}.`
                             : `Critical indicators detected: ${dec.ruleResult.matchedFlags.map((f) => f.titleEn).join(', ')}.`}
                         </span>
                       ) : dec.decisionSource === 'CONSERVATIVE_FALLBACK' ? (
                         <span>
-                          {language === 'ar'
+                          {cardLang === 'ar'
                             ? 'نظراً لعدم اكتمال أو غموض بعض البيانات الواردة في الوصف، يوصى بالفحص الطبي في اليوم نفسه كإجراء احترازي لسلامتك.'
                             : 'Due to insufficient or unclear information in the description, a same-day medical assessment is recommended as a safety precaution.'}
                         </span>
                       ) : (
                         <span>
-                          {language === 'ar'
+                          {cardLang === 'ar'
                             ? dec.finalUrgency === 'URGENT'
                               ? 'أعراض عاجلة تتطلب فحصاً تخصصياً في اليوم نفسه بناءً على استمرار الألم أو حساسية الضوء.'
                               : 'أعراض سطحية مستقرة لا تشير إلى علامات خطورة حادة.'
@@ -604,10 +606,10 @@ export const WhatsAppSimulator: React.FC<WhatsAppSimulatorProps> = ({
                   {/* 3. Next Action */}
                   <div className="space-y-1 pt-2 border-t border-slate-100">
                     <span className="text-[10px] uppercase font-bold text-slate-500 tracking-wider block">
-                      {language === 'ar' ? 'الخطوة التالية الموصى بها:' : 'Recommended Action:'}
+                      {cardLang === 'ar' ? 'الخطوة التالية الموصى بها:' : 'Recommended Action:'}
                     </span>
                     <p className="text-[13px] leading-relaxed text-slate-900 font-medium">
-                      {language === 'ar' ? dec.guidanceTextAr : dec.guidanceTextEn}
+                      {cardLang === 'ar' ? dec.guidanceTextAr : dec.guidanceTextEn}
                     </p>
                   </div>
 
@@ -617,19 +619,19 @@ export const WhatsAppSimulator: React.FC<WhatsAppSimulatorProps> = ({
                       <div className="flex items-start justify-between gap-1">
                         <div>
                           <span className="text-[10px] text-teal-800 font-semibold block">
-                            {language === 'ar' ? 'الجهة الموصى بالتوجه إليها (افتراضية):' : 'Recommended Demo Facility:'}
+                            {cardLang === 'ar' ? 'الجهة الموصى بالتوجه إليها (افتراضية):' : 'Recommended Demo Facility:'}
                           </span>
                           <span className="font-bold text-slate-900 text-xs sm:text-sm block">
-                            {language === 'ar' ? fac.nameAr : fac.nameEn}
+                            {cardLang === 'ar' ? fac.nameAr : fac.nameEn}
                           </span>
                           <span className="text-[11px] text-slate-500 font-medium block">
-                            {language === 'ar' ? fac.typeAr : fac.typeEn}
+                            {cardLang === 'ar' ? fac.typeAr : fac.typeEn}
                           </span>
                         </div>
                         <span className="text-[10px] font-mono bg-white border border-slate-200 text-slate-700 px-2 py-0.5 rounded shrink-0">
                           {fac.isCalculatedDistance
                             ? `${fac.distanceKm} km (GPS)`
-                            : language === 'ar'
+                            : cardLang === 'ar'
                             ? `عينة: ~${fac.distanceKm} كم`
                             : `Sample: ~${fac.distanceKm} km`}
                         </span>
@@ -637,7 +639,7 @@ export const WhatsAppSimulator: React.FC<WhatsAppSimulatorProps> = ({
 
                       <div className="text-[11px] text-slate-600 flex items-center gap-1.5">
                         <Clock className="w-3.5 h-3.5 text-slate-400 shrink-0" />
-                        <span>{language === 'ar' ? fac.operatingHoursAr : fac.operatingHoursEn}</span>
+                        <span>{cardLang === 'ar' ? fac.operatingHoursAr : fac.operatingHoursEn}</span>
                       </div>
 
                       {/* Direct Action Buttons */}
@@ -645,11 +647,11 @@ export const WhatsAppSimulator: React.FC<WhatsAppSimulatorProps> = ({
                         <button
                           type="button"
                           disabled
-                          title={language === 'ar' ? 'سجل تجريبي افتراضي — الاتصال معطل' : 'Fictional demo record — telephone dialing disabled'}
+                          title={cardLang === 'ar' ? 'سجل تجريبي افتراضي — الاتصال معطل' : 'Fictional demo record — telephone dialing disabled'}
                           className="flex-1 inline-flex items-center justify-center gap-1 py-1.5 bg-slate-100 text-slate-400 cursor-not-allowed rounded-lg text-[11px] font-semibold"
                         >
                           <PhoneCall className="w-3 h-3 text-slate-400" />
-                          <span>{language === 'ar' ? 'هاتف (معطل تجريبياً)' : 'Phone (Disabled)'}</span>
+                          <span>{cardLang === 'ar' ? 'هاتف (معطل تجريبياً)' : 'Phone (Disabled)'}</span>
                         </button>
 
                         <button
@@ -662,7 +664,7 @@ export const WhatsAppSimulator: React.FC<WhatsAppSimulatorProps> = ({
                           className="flex-1 inline-flex items-center justify-center gap-1 py-1.5 bg-white hover:bg-slate-50 border border-slate-200 text-slate-800 rounded-lg text-[11px] font-semibold transition-colors shadow-2xs"
                         >
                           <ExternalLink className="w-3 h-3 text-teal-700" />
-                          <span>{language === 'ar' ? 'خريطة الموقع' : 'Directions'}</span>
+                          <span>{cardLang === 'ar' ? 'خريطة الموقع' : 'Directions'}</span>
                         </button>
                       </div>
                     </div>
@@ -671,11 +673,11 @@ export const WhatsAppSimulator: React.FC<WhatsAppSimulatorProps> = ({
                       <div className="flex items-center gap-1.5 font-bold text-amber-800">
                         <AlertTriangle className="w-3.5 h-3.5 text-amber-600 shrink-0" />
                         <span>
-                          {language === 'ar' ? 'تنبيه توجيه المنشآت التجريبية' : 'Demo Facility Routing Notice'}
+                          {cardLang === 'ar' ? 'تنبيه توجيه المنشآت التجريبية' : 'Demo Facility Routing Notice'}
                         </span>
                       </div>
                       <p className="text-[11px] leading-relaxed">
-                        {language === 'ar'
+                        {cardLang === 'ar'
                           ? msg.routingExplanationAr || session.routingExplanationAr || 'لا توجد منشأة تجريبية مناسبة في هذه المدينة.'
                           : msg.routingExplanationEn || session.routingExplanationEn || 'No suitable demo facility found in the selected city.'}
                       </p>
@@ -1305,6 +1307,7 @@ export const WhatsAppSimulator: React.FC<WhatsAppSimulatorProps> = ({
                       const isQuestionAnswered = Boolean(msg.isAnswered || isPriorQuestion);
                       const isSelected = msg.selectedQuickReplyId === qr.id;
                       const isDisabled = isQuestionAnswered || session.status !== 'FOLLOW_UP' || isLoading;
+                      const promptLang = msg.conversationLanguage || session.conversationLanguage || language;
 
                       return (
                         <button
@@ -1321,7 +1324,7 @@ export const WhatsAppSimulator: React.FC<WhatsAppSimulatorProps> = ({
                           }`}
                         >
                           {isSelected && <span className="mr-1 ml-1 text-[11px]">✓</span>}
-                          {language === 'ar' ? qr.labelAr : qr.labelEn}
+                          {promptLang === 'ar' ? qr.labelAr : qr.labelEn}
                         </button>
                       );
                     })}

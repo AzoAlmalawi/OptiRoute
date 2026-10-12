@@ -141,6 +141,7 @@ export interface ChatMessage {
   quickReplies?: QuickReplyOption[];
   selectedQuickReplyId?: string;
   isAnswered?: boolean;
+  conversationLanguage?: Language;
   decisionPayload?: TriageDecision;
   facilityPayload?: Facility;
   routingExplanationAr?: string;
@@ -183,6 +184,7 @@ export interface TriageSession {
   startedAt: string;
   updatedAt: string;
   language: Language;
+  conversationLanguage?: Language;
   consentGiven: boolean;
   status: 'AWAITING_CONSENT' | 'IN_TRIAGE' | 'FOLLOW_UP' | 'COMPLETED';
   followUpCount: number;
